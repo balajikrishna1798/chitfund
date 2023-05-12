@@ -7,10 +7,11 @@ import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { useAddPaymentMutation, useGetPaymentQuery, useGetShareholderQuery,useGetLoanQuery } from "../service/Api";
+import { useAddPaymentMutation, useGetPaymentQuery,useGetLoanQuery } from "../service/LoanApi";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Tag } from 'primereact/tag';
+import { useGetShareholderQuery } from "../service/ShareholderApi";
 
 const Receipt = () => {
     const [addPayment] = useAddPaymentMutation();
@@ -19,7 +20,6 @@ const Receipt = () => {
     const [loanDialog, setLoanDialog] = useState(false);
     const [loans, setLoans] = useState(null);
     const [selectedLoans, setSelectedLoans] = useState(null);
-    const [temp, setTemp] = useState(null)
     const [globalFilter, setGlobalFilter] = useState(null);
     const toast = useRef(null);
     const dt = useRef(null);

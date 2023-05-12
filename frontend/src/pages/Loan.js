@@ -8,13 +8,13 @@ import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { useAddLoanMutation, useGetLoanQuery, useGetKycShareholderQuery, useUpdateLoanMutation } from "../service/Api";
+import { useAddLoanMutation, useGetLoanQuery, useUpdateLoanMutation } from "../service/LoanApi";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Tag } from 'primereact/tag';
-
 import "./Loan.css";
 import { slugBodyTemplate } from "../components/SlugBodyTemplate";
+import { useGetKycShareholderQuery } from "../service/KycApi";
 const Loan = () => {
     const loanchoice = [
         { name: "EMI", value: "EMI" },

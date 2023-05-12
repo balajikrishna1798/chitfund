@@ -5,8 +5,8 @@ import { Toast } from "primereact/toast";
 import { Button } from "primereact/button";
 import { Toolbar } from "primereact/toolbar";
 import { InputText } from "primereact/inputtext";
-import { useGetDueQuery} from "../service/Api";
 import { Tag } from 'primereact/tag';
+import { useGetDueQuery } from "../service/LoanApi";
 
 
 const Due = () => {

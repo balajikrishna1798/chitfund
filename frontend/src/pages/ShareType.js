@@ -6,7 +6,7 @@ import { Button } from "primereact/button";
 import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
-import { useAddShareMutation, useGetShareQuery, useUpdateShareMutation, useDeleteShareMutation } from "../service/Api";
+import { useAddShareTypeMutation, useGetShareTypeQuery, useUpdateShareTypeMutation, useDeleteShareTypeMutation } from "../service/ShareTypeApi";
 import { Dropdown } from "primereact/dropdown";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -18,14 +18,13 @@ const ShareType = () => {
         { name: "Pref", value: "Pref" },
     ];
 
-    const [addShare] = useAddShareMutation();
+    const [addShare] = useAddShareTypeMutation();
     const [shareTypes, setShareTypes] = useState(null);
 
     const [shareTypeDialog, setShareDialog] = useState(false);
     const [deleteShareTypeDialog, setDeleteProductDialog] = useState(false);
     const [deleteShareTypesDialog, setDeleteProductsDialog] = useState(false);
     const [selectedShareTypes, setSelectedShareTypes] = useState(null);
-    const [globalFilter, setGlobalFilter] = useState(null);
     const toast = useRef(null);
     const dt = useRef(null);
     const [lazyState, setlazyState] = useState({
@@ -33,9 +32,9 @@ const ShareType = () => {
         rows: 10,
         page: 0,
     });
-    const { data, isLoading: loading } = useGetShareQuery(lazyState.page);
-    const [deleteShare] = useDeleteShareMutation();
-    const [updateShare] = useUpdateShareMutation();
+    const { data, isLoading: loading } = useGetShareTypeQuery(lazyState.page);
+    const [deleteShare] = useDeleteShareTypeMutation();
+    const [updateShare] = useUpdateShareTypeMutation();
 
     const onPage = (event) => {
         console.log("event", event);
@@ -145,24 +144,12 @@ const ShareType = () => {
         setDeleteProductsDialog(true);
     };
 
-    const deleteSelectedShareTypes = async () => {
-        let _shares = shareTypes.filter((val) => !selectedShareTypes.includes(val));
-        await selectedShareTypes.map((sharetype) => {
-            deleteShare(sharetype.id);
-        });
-
-        setShareTypes(_shares);
-        setDeleteProductsDialog(false);
-        setSelectedShareTypes(null);
-        toast.current.show({ severity: "success", summary: "Successful", detail: "Products Deleted", life: 3000 });
-    };
 
     const leftToolbarTemplate = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
                     <Button label="New" icon="pi pi-plus" className="p-button-success mr-2" onClick={openNew} />
-                    <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={confirmDeleteSelected} disabled={!selectedShareTypes || !selectedShareTypes.length} />
                 </div>
             </React.Fragment>
         );
@@ -228,7 +215,7 @@ const ShareType = () => {
     const deleteShareTypesDialogFooter = (
         <>
             <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteShareTypesDialog} />
-            <Button label="Yes" icon="pi pi-check" className="p-button-text" onClick={deleteSelectedShareTypes} />
+
         </>
     );
 
@@ -242,7 +229,6 @@ const ShareType = () => {
                         <DataTable
                             ref={dt}
                             lazy
-                            filterDisplay="row"
                             dataKey="id"
                             paginator
                             value={shareTypes}
@@ -254,11 +240,10 @@ const ShareType = () => {
                             sortOrder={lazyState.sortOrder}
                             loading={loading}
                             scrollable
-                            scrollHeight="450px"
+                            scrollHeight="400px"
                             className="datatable-responsive"
                             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} shareTypes"
-                            globalFilter={globalFilter}
                             emptyMessage="No shareTypes found."
                             header={header}
                             responsiveLayout="scroll"

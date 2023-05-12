@@ -7,8 +7,10 @@ import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { useGetKycQuery, useGetShareQuery } from "../service/Api";
-import { useGetShareholderQuery, useUpdateShareholderMutation, useAddShareholderMutation,useGetSharesQuery } from "../service/Api";
+import { useGetShareTypesQuery } from "../service/ShareTypeApi";
+import { useGetShareholderQuery, useUpdateShareholderMutation, useAddShareholderMutation } from "../service/ShareholderApi";
+import { useGetKycsQuery } from "../service/KycApi";
+
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { Tag } from 'primereact/tag';
@@ -25,9 +27,8 @@ const Shareholder = () => {
     const [globalFilter, setGlobalFilter] = useState(null);
     const toast = useRef(null);
     const dt = useRef(null);
-    const { data: kyc_id } = useGetKycQuery();
-    const { data: share_id } = useGetShareQuery();
-
+    const { data: kyc_id } = useGetKycsQuery();
+    const { data: share_id } = useGetShareTypesQuery();
     const { data: getShareholder } = useGetShareholderQuery();
     const [updateShareholder] = useUpdateShareholderMutation();
 
@@ -42,7 +43,7 @@ const Shareholder = () => {
     }, [share_id]);
 
     useEffect(() => {
-        setShareholders(getShareholder);
+        setShareholders(getShareholder?.results);
     }, [getShareholder]);
 
     const shareTypeSchema = Yup.object().shape({

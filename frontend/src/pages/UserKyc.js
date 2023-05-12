@@ -10,11 +10,10 @@ import { Toolbar } from "primereact/toolbar";
 import { country_state_data } from "../assets/country_state_data/country_state_data";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
-import { useAddKycMutation, useCheckKycMutation, useGetKycQuery, useUpdateKycMutation } from "../service/Api";
+import { useAddKycMutation, useCheckKycMutation, useGetKycQuery, useUpdateKycMutation } from "../service/KycApi";
 import { Dropdown } from "primereact/dropdown";
 import { Tag } from 'primereact/tag';
 import { slugBodyTemplate } from "../components/SlugBodyTemplate";
-
 const UserKyc = () => {
     const [states, setStates] = useState([]);
     const [addKyc] = useAddKycMutation();
@@ -280,7 +279,7 @@ const UserKyc = () => {
         return (
             <>
                 <span className="p-column-title">Share Type</span>
-                {rowData.email}
+               {rowData.email}
             </>
         );
     };
@@ -319,13 +318,14 @@ const UserKyc = () => {
                     <DataTable
                         ref={dt}
                         lazy
+                        showGridlines
                         value={kycs}
-                        selection={selectedKycs}
-                        onSelectionChange={(e) => setSelectedKycs(e.value)}
                         dataKey="id"
                         onPage={onPage}
                         paginator
-                        rows={2}
+                        rows={10}
+                        scrollHeight="400px"
+
                         first={lazyState.first}
                         totalRecords={data?.count}
                         rowsPerPageOptions={[5, 10, 25]}
@@ -337,16 +337,15 @@ const UserKyc = () => {
                         header={header}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }}></Column>
-                        <Column field="slug" header="Kyc ID" sortable body={slugBodyTemplate}></Column>
+                        <Column field="slug" header="Kyc ID"  body={slugBodyTemplate}></Column>
 
-                        <Column field="first_name" header="First Name" sortable body={firstNameBodyTemplate}></Column>
-                        <Column field="last_name" header="Last Name" sortable body={lastNameBodyTemplate}></Column>
-                        <Column field="pan" header="PAN" sortable body={panBodyTemplate}></Column>
-                        <Column field="address" header="Mobile Number" sortable body={phoneBodyTemplate}></Column>
-                        <Column field="email" header="Email" sortable body={emailBodyTemplate}></Column>
-                        <Column field="created_at" header="Created On" sortable body={created_atBodyTemplate}></Column>
-                        <Column field="status" header="Status" sortable body={statusBodyTemplate}></Column>
+                        <Column field="first_name" header="First Name"  body={firstNameBodyTemplate}></Column>
+                        <Column field="last_name" header="Last Name"  body={lastNameBodyTemplate}></Column>
+                        <Column field="pan" header="PAN"  body={panBodyTemplate}></Column>
+                        <Column field="address" header="Mobile Number"  body={phoneBodyTemplate}></Column>
+                        <Column field="email" header="Email" body={emailBodyTemplate} ></Column>
+                        <Column field="created_at" header="Created On"  body={created_atBodyTemplate}></Column>
+                        <Column field="status" header="Status" body={statusBodyTemplate} ></Column>
 
                         <Column body={actionBodyTemplate}></Column>
                     </DataTable>

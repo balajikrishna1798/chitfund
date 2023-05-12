@@ -8,5 +8,5 @@ router.register('payment',paymentViewSet,basename="payment")
 
 urlpatterns = [
     path("",include(router.urls)),
-    path("kycShareholder/",kycShareholder.as_view())
+    path("/all",LoanViews.as_view())
 ]

@@ -8,12 +8,13 @@ import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { useAddDepositMutation, useGetDepositQuery, useGetKycShareholderQuery, useUpdateDepositMutation } from "../service/Api";
+import { useAddDepositMutation, useGetDepositQuery, useUpdateDepositMutation } from "../service/DepositApi";
 import { useFormik } from "formik";
 import { Tag } from 'primereact/tag';
 import './Loan.css'
 import * as Yup from "yup";
 import { slugBodyTemplate } from "../components/SlugBodyTemplate";
+import { useGetKycShareholderQuery } from "../service/KycApi";
 const Deposit = () => {
     const depositchoice = [
         { value: "3 Months", name: "3 Months" },

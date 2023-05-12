@@ -4,8 +4,8 @@ import { Button } from 'primereact/button';
 import { Chart } from 'primereact/chart';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { useGetShareQuery } from "../service/Api";
-import { useGetShareholderQuery} from "../service/Api";
+import { useGetShareTypeQuery } from "../service/ShareTypeApi";
+import { useGetShareholderQuery} from "../service/ShareholderApi";
 
 const lineData = {
 
@@ -31,7 +31,7 @@ const lineData = {
 };
 
 const Dashboard = (props) => {
-    const { data } = useGetShareQuery();
+    const { data } = useGetShareTypeQuery();
 
     const [shares, setShares] = useState(null);
     const menu1 = useRef(null);

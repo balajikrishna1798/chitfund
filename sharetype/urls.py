@@ -8,5 +8,5 @@ router.register('sharetype',sharetypeViewSet,basename="sharetype")
 
 urlpatterns = [
     path("",include(router.urls)),
-    path('ss/',views.SharetypeViews.as_view())
+    path('all/',views.SharetypeViews.as_view())
 ]
