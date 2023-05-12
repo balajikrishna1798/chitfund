@@ -1,0 +1,13 @@
+.tabler {
+    border: 2px solid forestgreen;
+    width: 410px;
+    height: 100px;
+  }
+
+ .thr {
+    border-bottom: 1px solid black;
+  }
+
+  .tdr {
+    text-align: center;
+  }

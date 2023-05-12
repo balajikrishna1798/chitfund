@@ -4,7 +4,8 @@ import { Button } from 'primereact/button';
 import { Chart } from 'primereact/chart';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { useAddShareMutation, useGetShareQuery, useUpdateShareMutation, useDeleteShareMutation } from "../service/Api";
+import { useGetShareQuery } from "../service/Api";
+import { useGetShareholderQuery} from "../service/Api";
 
 const lineData = {
 
@@ -36,7 +37,13 @@ const Dashboard = (props) => {
     const menu1 = useRef(null);
     const menu2 = useRef(null);
     const [lineOptions, setLineOptions] = useState(null)
+    const [shareholders, setShareholders] = useState(null);
 
+    const { data: getShareholder } = useGetShareholderQuery();
+
+    useEffect(() => {
+        setShareholders(getShareholder);
+    }, [getShareholder]);
     const applyLightTheme = () => {
         const lineOptions = {
             plugins: {
@@ -113,9 +120,34 @@ const Dashboard = (props) => {
         }
     }, [props.colorMode]);
 
-    const formatCurrency = (value) => {
-        return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+    const codeBodyTemplate = (rowData) => {
+        console.log(rowData);
+        return (
+            <>
+                <span className="p-column-title">Share Value</span>
+                {rowData.kyc_detail.first_name}-<span style={{ color: "green", fontWeight: "bold" }}>{rowData.kyc_detail.pan}</span>
+            </>
+        );
     };
+
+    const shareBodyTemplate = (rowData) => {
+        console.log(rowData);
+        return (
+            <>
+                <span className="p-column-title">Share Value</span>
+                {rowData.share_detail.share_type} ({rowData.share_detail.share_value})
+            </>
+        );
+    };
+   const created_atBodyTemplate = (rowData) => {
+        console.log(rowData);
+         return (
+             <>
+                 <span className="p-column-title"> Amount</span>
+                 {new Date(rowData.created_at).toLocaleString()}
+             </>
+         );
+     };
 
     return (
         <div className="grid">
@@ -183,10 +215,11 @@ const Dashboard = (props) => {
             <div className="col-12 xl:col-6">
                 <div className="card">
                     <h5>Recent Sales</h5>
-                    <DataTable value={shares} rows={5} paginator responsiveLayout="scroll">
-                        <Column header="Image" body={(data) => <img className="shadow-2" src={`assets/demo/images/product/${data.image}`} alt={data.image} width="50"/>}/>
-                        <Column field="name" header="Name" sortable style={{width: '35%'}}/>
-                      
+                    <DataTable value={shareholders} rows={1} paginator responsiveLayout="scroll">
+                    <Column field="kyc" header="KYC" sortable body={codeBodyTemplate}></Column>
+                        <Column field="share_type" header="Share Type" sortable body={shareBodyTemplate}></Column>
+                        <Column field="created_at" header="Created On" sortable body={created_atBodyTemplate}></Column>
+
                         <Column header="View" style={{width:'15%'}} body={() => (
                             <>
                                 <Button icon="pi pi-search" type="button" className="p-button-text"/>

@@ -7,3 +7,14 @@ class InterestTypes(StrEnum):
   @classmethod
   def choices(cls):
     return [(key.value, key.name) for key in cls]
+  
+class Emi_Periods(StrEnum):
+  ThreeMonths = "3 Months"
+  SixMonths = "6 Months"
+  TwelveMonths = "12 Months"
+  TwentyFourMonths = "24 Months"
+
+  @classmethod
+  def choices(cls):
+    return [(key.value, key.name) for key in cls]
+  

@@ -8,53 +8,36 @@ import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { useGetKycQuery, useGetShareQuery } from "../service/Api";
-import { useDeleteShareholderMutation, useGetShareholderQuery, useUpdateShareholderMutation, useAddShareholderMutation } from "../service/Api";
+import { useGetShareholderQuery, useUpdateShareholderMutation, useAddShareholderMutation,useGetSharesQuery } from "../service/Api";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { Tag } from 'primereact/tag';
+import { slugBodyTemplate } from "../components/SlugBodyTemplate";
 
 const Shareholder = () => {
-    const depositchoice = [
-        { name: "EMI", value: "EMI" },
-        { name: "Interest", value: "Interest" },
-    ];
-    const initialState = {
-        id: null,
-        kyc: null,
-        share_type: null,
-        interest_type: null,
-        number_of_shares: null,
-        starting_share: null,
-        ending_share: null,
-        deposited_on: null,
-        withdrawn_on: null,
-    };
+
     const [addShareholder] = useAddShareholderMutation();
     const [shareholders, setShareholders] = useState(null);
     const [kycs, setKycs] = useState(null);
     const [shares, setShares] = useState(null);
     const [shareDialog, setShareDialog] = useState(false);
-    const [deleteShareDialog, setDeleteProductDialog] = useState(false);
-    const [deleteSharesDialog, setDeleteProductsDialog] = useState(false);
-    const [shareholder, setShareholder] = useState(initialState);
     const [selectedProducts, setSelectedProducts] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const toast = useRef(null);
     const dt = useRef(null);
     const { data: kyc_id } = useGetKycQuery();
     const { data: share_id } = useGetShareQuery();
+
     const { data: getShareholder } = useGetShareholderQuery();
-    const [deleteShareholder] = useDeleteShareholderMutation();
     const [updateShareholder] = useUpdateShareholderMutation();
-    const { kyc, amount, share_type, interest_type, number_of_shares, starting_share, ending_share, deposited_on, withdrawn_on } = shareholder;
+
 
     useEffect(() => {
         setKycs(kyc_id);
-        console.log(kyc_id);
         setShares(share_id);
     }, [kyc_id]);
 
     useEffect(() => {
-        console.log(share_id);
         setShares(share_id);
     }, [share_id]);
 
@@ -65,10 +48,10 @@ const Shareholder = () => {
     const shareTypeSchema = Yup.object().shape({
         kyc: Yup.number().required("This Field is Required"),
         share_type: Yup.string().required("This Field is Required"),
-        interest_type: Yup.string().required("This Field is Required"),
-        number_of_shares: Yup.number().required("This Field is Required").moreThan(0, "Should be greater than Zero"),
-        starting_share: Yup.number().required("This Field is Required").moreThan(0, "Should be greater than Zero"),
-        ending_share: Yup.number().required("This Field is Required").moreThan(0, "Should be greater than Zero"),
+        number_of_shares: Yup.number()
+            .required("This Field is Required")
+            .moreThan(0, "Should be greater than Zero")
+            .integer(),
     });
 
     const formik = useFormik({
@@ -76,8 +59,6 @@ const Shareholder = () => {
             id: null,
             kyc: null,
             share_type: null,
-            amount: null,
-            interest_type: null,
             number_of_shares: null,
             starting_share: null,
             ending_share: null,
@@ -85,51 +66,36 @@ const Shareholder = () => {
         validationSchema: shareTypeSchema,
         onSubmit: async (values) => {
             let _deposits = [...shareholders];
-            let _deposit = { ...shareholder };
-            const { kyc, amount, share_type, interest_type, number_of_shares, starting_share, ending_share } = values;
+            let _deposit = { ...values };
+            const {id, kyc, amount, share_type, interest_type, number_of_shares, starting_share, ending_share } = values;
 
-            if (shareholder.id) {
-                console.log(_deposit);
-                const index = findIndexById(shareholder.id);
+            if (values.id) {
+                const index = findIndexById(values.id);
                 _deposits[index] = _deposit;
-                await updateShareholder({ id: shareholder.id, kyc, share_type, amount, interest_type, number_of_shares, starting_share, ending_share });
-                toast.current.show({ severity: "success", summary: "Successful", detail: "Product Updated", life: 3000 });
-            } else {
-                console.log(shareholders);
-                await addShareholder({ kyc, amount, share_type, interest_type, number_of_shares, starting_share, ending_share });
-                toast.current.show({ severity: "success", summary: "Successful", detail: "Product Created", life: 3000 });
-            }
+                updateShareholder({ id, kyc, share_type, amount, interest_type, number_of_shares, starting_share, ending_share }).unwrap()
+                .then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "Shareholder details Updated", life: 3000 }))
+                .catch((error) => toast.current.show({ severity: "warn", summary: "Error", detail: "Some Error from server", life: 5000 }));;
 
+            } else {
+                addShareholder({ kyc, amount, share_type, interest_type, number_of_shares, starting_share, ending_share }).unwrap()
+                .then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "Shareholder details Created", life: 3000 }))
+                .catch((error) => toast.current.show({ severity: "warn", summary: "Error", detail: "Some Error from server", life: 5000 }));;
+            }
             setShareholders(_deposits);
             setShareDialog(false);
-            setShareholder(_deposit);
         },
     });
 
     const openNew = () => {
-        setShareholder(initialState);
         setShareDialog(true);
-        formik.resetForm()
+        formik.resetForm();
     };
 
     const hideDialog = () => {
         setShareDialog(false);
     };
 
-    const hideDeleteProductDialog = () => {
-        setDeleteProductDialog(false);
-    };
-
-    const hideDeleteProductsDialog = () => {
-        setDeleteProductsDialog(false);
-    };
-
-    const saveProduct = async () => {};
-
     const editProduct = (shareholder) => {
-        console.log(kyc, "kyc");
-        console.log(shareholder, "shareholder");
-        setShareholder({ ...shareholder });
         formik.setValues({ ...shareholder });
         setShareDialog(true);
     };
@@ -144,44 +110,37 @@ const Shareholder = () => {
 
         return index;
     };
-    const confirmDeleteProduct = (shareholder) => {
-        setShareholder(shareholder);
-        setDeleteProductDialog(true);
-    };
 
-    const deleteProduct = () => {
-        deleteShareholder(shareholder.id);
-        setDeleteProductDialog(false);
-        setShareholder({});
-        toast.current.show({ severity: "success", summary: "Successful", detail: "Product Deleted", life: 3000 });
-    };
 
     const exportCSV = () => {
         dt.current.exportCSV();
     };
 
-    const confirmDeleteSelected = () => {
-        setDeleteProductsDialog(true);
+    const statusBodyTemplate = (product) => {
+        return <Tag style={{width:50,height:30}} value={`${product.active===true?"Active":"InActive"}`} severity={getSeverity(product)}></Tag>;
     };
 
-    const deleteSelectedProducts = async () => {
-        let _deposits = shareholders.filter((val) => !selectedProducts.includes(val));
-        await selectedProducts.map((a) => {
-            deleteShareholder(a.id);
-        });
+    const getSeverity = (product) => {
+        console.log(product);
+        switch (product.active) {
+            case true:
+                return 'success';
 
-        setShareholders(_deposits);
-        setDeleteProductsDialog(false);
-        setSelectedProducts(null);
-        toast.current.show({ severity: "success", summary: "Successful", detail: "Products Deleted", life: 3000 });
+            case false:
+                return 'warning';
+
+            default:
+                return null;
+        }
     };
+
 
     const leftToolbarTemplate = () => {
         return (
             <React.Fragment>
                 <div className="my-2">
                     <Button label="New" icon="pi pi-plus" className="p-button-success mr-2" onClick={openNew} />
-                    <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={confirmDeleteSelected} disabled={!selectedProducts || !selectedProducts.length} />
+
                 </div>
             </React.Fragment>
         );
@@ -219,7 +178,6 @@ const Shareholder = () => {
         return (
             <div className="actions">
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success mr-2" onClick={() => editProduct(rowData)} />
-                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning mt-2" onClick={() => confirmDeleteProduct(rowData)} />
             </div>
         );
     };
@@ -240,35 +198,62 @@ const Shareholder = () => {
             <Button label="Save" type="submit" icon="pi pi-check" className="p-button-text" />
         </p>
     );
-    const deleteShareDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteProductDialog} />
-            <Button label="Yes" icon="pi pi-check" className="p-button-text" onClick={deleteProduct} />
-        </>
-    );
-    const deleteSharesDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" className="p-button-text" onClick={deleteSelectedProducts} />
-        </>
-    );
 
-    const countryShareTemplate = (option) => {
+
+    const ShareTypeDropdownTemplate = (option) => {
         console.log("option", option);
         return (
             <div className="flex align-items-center">
                 <div>{option.share_type}</div>
-                <div> ({option.share_value})</div>
+                <div> - {option.slug}</div>
             </div>
         );
     };
+    const created_atBodyTemplate = (rowData) => {
+        console.log(rowData);
+         return (
+             <>
+                 <span className="p-column-title"> Amount</span>
+                 {new Date(rowData.created_at).toLocaleString()}
+             </>
+         );
+     };
 
+     const numberofshareBodyTemplate = (rowData) => {
+        console.log(rowData);
+         return (
+             <>
+                 <span className="p-column-title"> Amount</span>
+                 {rowData.number_of_shares}
+             </>
+         );
+     };
+
+
+     const startingshareBodyTemplate = (rowData) => {
+        console.log(rowData);
+         return (
+             <>
+                 <span className="p-column-title"> Amount</span>
+                 {rowData.starting_share}
+             </>
+         );
+     };
+     const endingshareBodyTemplate = (rowData) => {
+        console.log(rowData);
+         return (
+             <>
+                 <span className="p-column-title"> Amount</span>
+                 {rowData.ending_share}
+             </>
+         );
+     };
     const selectedShareTemplate = (option, props) => {
         if (option) {
             return (
                 <div className="flex align-items-center">
                     <div>{option.share_type}</div>
-                    <div> ({option.share_value})</div>
+                    <div> ({option.slug})</div>
                 </div>
             );
         }
@@ -276,7 +261,7 @@ const Shareholder = () => {
         return <span>{props.placeholder}</span>;
     };
 
-    const countryKycTemplate = (option) => {
+    const displayKycTemplate = (option) => {
         console.log("option", option);
         return (
             <div className="flex align-items-center">
@@ -322,19 +307,25 @@ const Shareholder = () => {
                         header={header}
                         responsiveLayout="scroll"
                     >
-                        <Column selectionMode="multiple" headerStyle={{ width: "3rem" }}></Column>
+                        <Column field="shareholder_id" header="Shareholder ID" sortable body={slugBodyTemplate}></Column>
                         <Column field="kyc" header="KYC" sortable body={codeBodyTemplate}></Column>
                         <Column field="share_type" header="Share Type" sortable body={shareBodyTemplate}></Column>
+                        <Column field="number_of_shares" header="Number of  Shares" sortable body={numberofshareBodyTemplate}></Column>
+
+                        <Column field="starting_share" header="Starting Share" sortable body={startingshareBodyTemplate}></Column>
+                        <Column field="ending_share" header="Ending Share" sortable body={endingshareBodyTemplate}></Column>
+
+                        <Column field="created_at" header="Created On" sortable body={created_atBodyTemplate}></Column>
+                        <Column field="status" header="Status" sortable body={statusBodyTemplate}></Column>
+
                         <Column body={actionBodyTemplate}></Column>
                     </DataTable>
 
                     <Dialog visible={shareDialog} style={{ width: "450px" }} header="Shareholders" modal className="p-fluid" onHide={hideDialog}>
                         <form onSubmit={formik.handleSubmit} className="flex flex-column gap-2">
-                        <div className="grid formgrid">
+                            <div className="grid formgrid">
                                 <div className="field col-12 mb-2 lg:col-6 lg:mb-0">
-                                    <label htmlFor="kyc">
-                                        KYC
-                                    </label>
+                                    <label htmlFor="kyc">KYC</label>
                                     <Dropdown
                                         value={formik.values.kyc}
                                         name="kyc"
@@ -342,7 +333,7 @@ const Shareholder = () => {
                                         onChange={formik.handleChange("kyc")}
                                         options={kycs}
                                         valueTemplate={selectedKycTemplate}
-                                        itemTemplate={countryKycTemplate}
+                                        itemTemplate={displayKycTemplate}
                                         optionLabel="pan"
                                         optionValue="id"
                                         placeholder="Select User"
@@ -360,7 +351,7 @@ const Shareholder = () => {
                                         onChange={formik.handleChange("share_type")}
                                         options={shares}
                                         valueTemplate={selectedShareTemplate}
-                                        itemTemplate={countryShareTemplate}
+                                        itemTemplate={ShareTypeDropdownTemplate}
                                         optionLabel="share_type"
                                         optionValue="id"
                                         placeholder="Select Sharetype"
@@ -369,74 +360,24 @@ const Shareholder = () => {
                                     {formik.errors.share_type && formik.touched.share_type && <p className="error">{formik.errors.share_type}</p>}
                                 </div>
                             </div>
-                            <div className="grid formgrid mt-2 justify-content-center">
-                                <div className="field col-12 mb-2 lg:col-6 lg:mb-0">
-
-                                <label htmlFor="number_of_shares">Number of shares</label>
-                                <InputText
-                                    value={formik.values.number_of_shares || 0}
-                                    className={`w-full ${formik.touched.number_of_shares && formik.errors.number_of_shares && "p-invalid"}`}
-                                    name="number_of_shares"
-                                    id="number_of_shares"
-                                    type="number"
-                                    onChange={formik.handleChange("number_of_shares")}
-                                />
-                                {formik.errors.number_of_shares && formik.touched.number_of_shares && (
-                                    <p className="error">
-                                        {formik.errors.number_of_shares}
-                                    </p>
-                                )}
-                            </div>
-
-</div>
                             <div className="grid formgrid mt-2">
-                                <div className="field col-12 mb-2 lg:col-6 lg:mb-0">
-                                    <label htmlFor="starting_share">Starting Share</label>
+                                <div className="field col-12 mb-2 lg:col-12 lg:mb-0">
+                                    <label htmlFor="number_of_shares">Number of shares</label>
                                     <InputText
-                                        value={formik.values.starting_share || 0}
-                                        className={`${formik.touched.starting_share && formik.errors.starting_share && "p-invalid"}`}
-                                        name="starting_share"
-                                        id="starting_share"
+                                        value={formik.values.number_of_shares || ""}
+                                        step="5"
+                                        className={`${formik.touched.number_of_shares && formik.errors.number_of_shares && "p-invalid"}`}
+                                        disabled={formik.values.id?true:false}
+                                        name="number_of_shares"
+                                        id="number_of_shares"
                                         type="number"
-                                        onChange={formik.handleChange("starting_share")}
+                                        onChange={formik.handleChange("number_of_shares")}
                                     />
-                                    {formik.errors.starting_share && formik.touched.starting_share && <p className="error">{formik.errors.starting_share}</p>}
-                                </div>
-                                <div className="field col-12 mb-2 lg:col-6 lg:mb-0">
-                                    <label htmlFor="ending_share">
-                                        Ending Share
-                                    </label>
-                                    <InputText
-                                        value={formik.values.ending_share || 0}
-                                        name="ending_share"
-                                        className={`${formik.touched.ending_share && formik.errors.ending_share && "p-invalid"}`}
-                                        id="ending_share"
-                                        type="number"
-                                        onChange={formik.handleChange("ending_share")}
-                                    />
-                                    {formik.errors.ending_share && formik.touched.ending_share && <p className="error ml-5">{formik.errors.ending_share}</p>}
+                                    {formik.errors.number_of_shares && formik.touched.number_of_shares && <p className="error">{formik.errors.number_of_shares}</p>}
                                 </div>
                             </div>
-                            <ShareDialogFooter/>
+                            <ShareDialogFooter />
                         </form>
-                    </Dialog>
-
-                    <Dialog visible={deleteShareDialog} style={{ width: "450px" }} header="Confirm" modal footer={deleteShareDialogFooter} onHide={hideDeleteProductDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: "2rem" }} />
-                            {shareholder && (
-                                <span>
-                                    Are you sure you want to delete <b>{shareholder.share_value}</b>?
-                                </span>
-                            )}
-                        </div>
-                    </Dialog>
-
-                    <Dialog visible={deleteSharesDialog} style={{ width: "450px" }} header="Confirm" modal footer={deleteSharesDialogFooter} onHide={hideDeleteProductsDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: "2rem" }} />
-                            {shareholder && <span>Are you sure you want to delete the selected shares?</span>}
-                        </div>
                     </Dialog>
                 </div>
             </div>

@@ -8,57 +8,52 @@ import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { useAddDepositMutation, useGetDepositQuery, useGetKycQuery, useUpdateDepositMutation, useDeleteDepositMutation } from "../service/Api";
+import { useAddDepositMutation, useGetDepositQuery, useGetKycShareholderQuery, useUpdateDepositMutation } from "../service/Api";
 import { useFormik } from "formik";
+import { Tag } from 'primereact/tag';
+import './Loan.css'
 import * as Yup from "yup";
+import { slugBodyTemplate } from "../components/SlugBodyTemplate";
 const Deposit = () => {
-
     const depositchoice = [
-        { name: "Monthly", value: "Monthly" },
-        { name: "Quarterly", value: "Quarterly" },
-        { name: "Halfyearly", value: "Halfyearly" },
-        { name: "Yearly", value: "Yearly" },
+        { value: "3 Months", name: "3 Months" },
+        { value: "6 Months", name: "6 Months" },
+        { value: "12 Months", name: "12 Months" },
+        { value: "18 Months", name: "18 Months" },
+        { value: "24 Months", name: "24 Months" },
+        { value: "30 Months", name: "30 Months" },
+        { value: "36 Months", name: "36 Months" },
     ];
-
-    const initialState =
-        {
-            id: null,
-            kyc: null,
-            amount: null,
-            interest_type: null,
-            deposited_on: null,
-            withdrawn_on: null,
-        }
 
     const [addDeposit] = useAddDepositMutation();
     const [deposits, setDeposits] = useState(null);
     const [kycs, setKycs] = useState(null);
     const [depositDialog, setDepositDialog] = useState(false);
-    const [deleteDepositDialog, setDeleteDepositDialog] = useState(false);
-    const [deleteDepositsDialog, setDeleteDepositsDialog] = useState(false);
-    const [deposit, setDeposit] = useState(initialState);
     const [selectedDeposits, setSelectedDeposits] = useState(null);
     const [globalFilter, setGlobalFilter] = useState(null);
     const toast = useRef(null);
     const dt = useRef(null);
-    const { data: kyc_id } = useGetKycQuery();
+    const { data: shareholder_id } = useGetKycShareholderQuery();
     const { data: dep } = useGetDepositQuery();
-    const [deleteDeposit] = useDeleteDepositMutation();
     const [updateDeposit] = useUpdateDepositMutation();
 
     useEffect(() => {
-        setKycs(kyc_id);
-        console.log(kyc_id);
-    }, [kyc_id]);
+        setKycs(shareholder_id);
+        console.log(shareholder_id);
+    }, [shareholder_id]);
 
     useEffect(() => {
         setDeposits(dep);
     }, [dep]);
 
-
     const depositTypeSchema = Yup.object().shape({
-        kyc: Yup.string().required("This field is required"),
-        amount: Yup.number().required("This field is required").moreThan(0),
+        shareholder: Yup.string().required("This field is required"),
+        amount: Yup.number().required("This field is required").moreThan(0).test(
+            "maxDigitsAfterDecimal",
+            "number field must have 4 digits after decimal or less",
+            (number) => /^\d+(\.\d{1,4})?$/.test(number)
+          ),
+        roi: Yup.number().required("This field is required"),
         interest_type: Yup.string().required("This field is required"),
         deposited_on: Yup.date().required("This field is required"),
         withdrawn_on: Yup.date().required("This field is required"),
@@ -66,66 +61,54 @@ const Deposit = () => {
     const formik = useFormik({
         initialValues: {
             id: null,
-            kyc: null,
+            shareholder: null,
             amount: null,
             interest_type: null,
             deposited_on: null,
             withdrawn_on: null,
+            roi:null
         },
         validationSchema: depositTypeSchema,
         onSubmit: async (values) => {
-            const { kyc, amount, interest_type, deposited_on, withdrawn_on } = values;
+
+            const { id,shareholder, amount, interest_type, deposited_on, withdrawn_on,roi } = values;
             let _deposits = [...deposits];
-            let _deposit = { ...deposit };
+            let _deposit = { ...values };
 
-            if (deposit.id) {
-                console.log(_deposit);
-                const index = findIndexById(deposit.id);
+            if (values.id) {
+                const index = findIndexById(values.id);
                 _deposits[index] = _deposit;
-                await updateDeposit({ id: deposit.id, kyc, amount, interest_type, deposited_on, withdrawn_on }).unwrap
-                .then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "Kyc Updated", life: 3000 }))
-                    .catch((error) =>
-                        toast.current.show({ severity: "warn", summary: "Error", detail: "Some Error from server", life: 5000 }))
-} else {
-                await addDeposit({ kyc, amount, interest_type, deposited_on, withdrawn_on }).unwrap()
-                .then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "User Kyc Created", life: 3000 }))
-                .catch((error) =>
-                    toast.current.show({ severity: "warn", summary: "Error", detail: "Some Error from server", life: 5000 })
-                );
+                await updateDeposit({ id, shareholder, amount, interest_type, deposited_on, withdrawn_on,roi })
+                    .unwrap().then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "Deposit Updated", life: 3000 }))
+                    .catch((error) => toast.current.show({ severity: "warn", summary: "Error", detail: "Some Error from server", life: 5000 }));
+                setDepositDialog(false);
+            } else {
+                await addDeposit({ shareholder, amount, interest_type, deposited_on, withdrawn_on,roi })
+                    .unwrap()
+                    .then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "Deposit Created", life: 3000 }))
+                    .catch((error) => toast.current.show({ severity: "warn", summary: "Error", detail: "Some Error from server", life: 5000 }));
+                setDepositDialog(false);
+            }
+            setDeposits(_deposits);
 
-        }
-        setDeposits(_deposits);
-
-        setDepositDialog(false);
-            setDeposit(initialState);
         },
     });
 
     const openNew = () => {
-        setDeposit(initialState);
         setDepositDialog(true);
-        formik.setValues(initialState)
-        formik.resetForm()
+        formik.resetForm();
     };
 
     const hideDialog = () => {
         setDepositDialog(false);
     };
 
-    const hideDeleteDepositDialog = () => {
-        setDeleteDepositDialog(false);
-    };
 
-    const hideDeleteProductsDialog = () => {
-        setDeleteDepositsDialog(false);
-    };
 
     const editDeposit = (deposited) => {
-        console.log("deposit",deposited);
-        setDeposit({ ...deposited });
-        formik.setValues({ ...deposited })
+        console.log("deposit", deposited);
+        formik.setValues({ ...deposited });
         setDepositDialog(true);
-        console.log(formik.values);
     };
 
     const findIndexById = (id) => {
@@ -139,36 +122,9 @@ const Deposit = () => {
 
         return index;
     };
-    const confirmDeleteDeposit = (deposit) => {
-        setDeposit(deposit);
-        setDeleteDepositDialog(true);
-    };
-
-    const deleteProduct = () => {
-        deleteDeposit(deposit.id);
-        setDeleteDepositDialog(false);
-        setDeposit({});
-        toast.current.show({ severity: "success", summary: "Successful", detail: "Product Deleted", life: 3000 });
-    };
 
     const exportCSV = () => {
         dt.current.exportCSV();
-    };
-
-    const confirmDeleteSelected = () => {
-        setDeleteDepositsDialog(true);
-    };
-
-    const deleteSelectedProducts = async () => {
-        let _deposits = deposits.filter((val) => !selectedDeposits.includes(val));
-        await selectedDeposits.map((a) => {
-            deleteDeposit(a.id);
-        });
-
-        setDeposits(_deposits);
-        setDeleteDepositsDialog(false);
-        setSelectedDeposits(null);
-        toast.current.show({ severity: "success", summary: "Successful", detail: "Products Deleted", life: 3000 });
     };
 
     const leftToolbarTemplate = () => {
@@ -176,7 +132,6 @@ const Deposit = () => {
             <React.Fragment>
                 <div className="my-2">
                     <Button label="New" icon="pi pi-plus" className="p-button-success mr-2" onClick={openNew} />
-                    <Button label="Delete" icon="pi pi-trash" className="p-button-danger" onClick={confirmDeleteSelected} disabled={!selectedDeposits || !selectedDeposits.length} />
                 </div>
             </React.Fragment>
         );
@@ -195,7 +150,7 @@ const Deposit = () => {
         return (
             <>
                 <span className="p-column-title">First name</span>
-                {rowData.kyc_detail.first_name} ({rowData.kyc_detail.pan})
+                {rowData.shareholder_detail.kyc_detail.first_name} ({rowData.shareholder_detail.kyc_detail.pan})
             </>
         );
     };
@@ -218,11 +173,47 @@ const Deposit = () => {
         );
     };
 
+    const deposited_onBodyTemplate = (rowData) => {
+        return (
+            <>
+                <span className="p-column-title"> Amount</span>
+                {new Date(rowData.deposited_on).toLocaleString()}
+            </>
+        );
+    };
+
+    const created_atBodyTemplate = (rowData) => {
+       console.log(rowData);
+        return (
+            <>
+                <span className="p-column-title"> Amount</span>
+                {new Date(rowData.created_at).toLocaleString()}
+            </>
+        );
+    };
+
+    const statusBodyTemplate = (product) => {
+        return <Tag style={{width:50,height:30}} value={`${product.active===true?"Active":"InActive"}`} severity={getSeverity(product)}></Tag>;
+    };
+
+    const getSeverity = (product) => {
+        console.log(product);
+        switch (product.active) {
+            case true:
+                return 'success';
+
+            case false:
+                return 'warning';
+
+            default:
+                return null;
+        }
+    };
+
     const actionBodyTemplate = (rowData) => {
         return (
             <div className="actions">
                 <Button icon="pi pi-pencil" className="p-button-rounded p-button-success mr-2" onClick={() => editDeposit(rowData)} />
-                <Button icon="pi pi-trash" className="p-button-rounded p-button-warning mt-2" onClick={() => confirmDeleteDeposit(rowData)} />
             </div>
         );
     };
@@ -243,19 +234,10 @@ const Deposit = () => {
             <Button label="Save" type="submit" icon="pi pi-check" className="p-button-text" />
         </p>
     );
-    const deleteShareDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDepositDialog} />
-            <Button label="Yes" icon="pi pi-check" className="p-button-text" onClick={deleteProduct} />
-        </>
-    );
-    const deleteDepositsDialogFooter = (
-        <>
-            <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteProductsDialog} />
-            <Button label="Yes" icon="pi pi-check" className="p-button-text" onClick={deleteSelectedProducts} />
-        </>
-    );
-    const userOptionTemplate = (option) => {
+
+
+    const shareholderOptionTemplate = (option) => {
+        console.log(option);
         return (
             <div className="flex align-items-center">
                 <div>{option.first_name}</div>
@@ -264,19 +246,18 @@ const Deposit = () => {
         );
     };
 
-    const selectedUserTemplate = (option, props) => {
+    const selectedShareholderTemplate = (option, props) => {
         if (option) {
             return (
                 <div className="flex align-items-center">
-                    <div>{option.first_name}</div>
-                    <div> - {option.pan}</div>
+      <div>{option.first_name}</div>
+                <div> - {option.pan}</div>
                 </div>
             );
         }
 
         return <span>{props.placeholder}</span>;
     };
-
     return (
         <div className="grid crud-demo">
             <div className="col-12">
@@ -301,17 +282,22 @@ const Deposit = () => {
                         responsiveLayout="scroll"
                     >
                         <Column selectionMode="multiple" headerStyle={{ width: "3rem" }}></Column>
-                        <Column field="kyc" header="Users" sortable body={kycDetailBodyTemplate}></Column>
+                        <Column field="slug" header="Deposit ID" sortable body={slugBodyTemplate}></Column>
+                        <Column field="kyc" header="Shareholders" sortable body={kycDetailBodyTemplate}></Column>
                         <Column field="amount" header="Amount" sortable body={amountBodyTemplate}></Column>
                         <Column field="interest_type" header="Interest Type" sortable body={interestTypeBodyTemplate}></Column>
+                        <Column field="loan_date_on" header="Deposited On" sortable body={deposited_onBodyTemplate}></Column>
+                        <Column field="created_at" header="Created On" sortable body={created_atBodyTemplate}></Column>
+                        <Column field="status" header="Status" sortable body={statusBodyTemplate
+}></Column>
+
                         <Column body={actionBodyTemplate}></Column>
                     </DataTable>
 
-                    <Dialog visible={depositDialog} style={{ width: "450px" }} header="Deposits" modal className="p-fluid" onHide={hideDialog}>
+                    <Dialog visible={depositDialog} style={{ width: "500px" }} header="Deposits" modal className="p-fluid" onHide={hideDialog}>
                         <form onSubmit={formik.handleSubmit} className="flex flex-column gap-2">
-
                             <div className="field">
-                                <label htmlFor="kyc">KYC User</label>
+                                <label htmlFor="kyc">Shareholder</label>
                                 <Dropdown
                                     className={formik.touched.kyc && formik.errors.kyc && "p-invalid"}
                                     name="kyc"
@@ -319,69 +305,79 @@ const Deposit = () => {
                                     id="kyc"
                                     onChange={formik.handleChange("kyc")}
                                     options={kycs}
-                                    valueTemplate={selectedUserTemplate}
-                                    itemTemplate={userOptionTemplate}
+                                    valueTemplate={selectedShareholderTemplate}
+                                    itemTemplate={shareholderOptionTemplate}
                                     optionLabel="pan"
                                     optionValue="id"
                                     placeholder="Select User"
                                     style={{ height: "40px" }}
                                 />
-                                  {(formik.errors.kyc&&formik.touched.kyc)&& <p className="error">{formik.errors.kyc}</p>}
+                                {formik.errors.kyc && formik.touched.kyc && <p className="error">{formik.errors.kyc}</p>}
                             </div>
-                            <div className="field">
-                                <label htmlFor="amount">Amount</label>
-                                <InputText className={formik.touched.amount && formik.errors.amount && "p-invalid"} value={formik.values.amount||""}  name="amount" id="amount" type="number" onChange={formik.handleChange("amount")} />
-                                {(formik.errors.amount&&formik.touched.amount)&& <p className="error">{formik.errors.amount}</p>}
+                            <div className="flex flex-column md:flex-row justify-content-between ">
 
+                            <div className="field">
+                                <label htmlFor="amount">Amount</label><br />
+                                <InputText className={`w-full md:w-15rem ${formik.touched.amount && formik.errors.amount && "p-invalid"}`} value={formik.values.amount || ""}
+                                step="100"
+                                name="amount" id="amount" type="number" onChange={formik.handleChange("amount")} />
+                                {formik.errors.amount && formik.touched.amount && <p className="error">{formik.errors.amount}</p>}
                             </div>
                             <div className="field">
                                 <label htmlFor="interest_type">Interest Type</label>
                                 <Dropdown
-                                    className={formik.touched.interest_type && formik.errors.interest_type && "p-invalid"}
+                                    className={`w-full md:w-15rem ${formik.touched.interest_type && formik.errors.interest_type && "p-invalid"}`}
+
                                     value={formik.values.interest_type}
                                     name="interest_type"
                                     onChange={formik.handleChange("interest_type")}
                                     options={depositchoice}
                                     optionLabel="name"
                                     placeholder="Select Interest type"
-                                    style={{ height: "40px" }}
                                 />
-                        {(formik.errors.interest_type&&formik.touched.interest_type)&& <p className="error">{formik.errors.interest_type}</p>}
+                                {formik.errors.interest_type && formik.touched.interest_type && <p className="error">{formik.errors.interest_type}</p>}
+                            </div>
+                            </div>
+                            <div className="field">
+                                <label htmlFor="roi">Rate Of Interest</label>
+                                <InputText className={`${formik.touched.roi && formik.errors.roi && "p-invalid"}`}
+
+                                value={formik.values.roi || ""} name="roi" id="roi" type="number" onChange={formik.handleChange("roi")} />
+                                {formik.errors.roi && formik.touched.roi && <p  style={{marginLeft:"30px"}} className="error">{formik.errors.roi}</p>}
                             </div>
 
+                            <div className="flex flex-column md:flex-row justify-content-between ">
                             <div className="field">
                                 <label htmlFor="deposited_on">Deposited On</label>
-                                <Calendar className={formik.touched.deposited_on && formik.errors.deposited_on && "p-invalid"} value={formik.values.id&&new Date(formik.values.deposited_on)} name="deposited_on" onChange={formik.handleChange("deposited_on")} showTime hourFormat="24" />
-                                {(formik.errors.deposited_on&&formik.touched.deposited_on)&& <p className="error">{formik.errors.deposited_on}</p>}
+                                <Calendar className={formik.touched.deposited_on && formik.errors.deposited_on && "p-invalid"} value={formik.values.id && new Date(formik.values.deposited_on)} name="deposited_on" onChange={formik.handleChange("deposited_on")} showTime hourFormat="24" />
+                                {formik.errors.deposited_on && formik.touched.deposited_on && <p className="error">{formik.errors.deposited_on}</p>}
                             </div>
 
                             <div className="field">
-                                <label htmlFor="withdrawn_on">Withdrawn On</label>
-                                <Calendar className={formik.touched.withdrawn_on && formik.errors.withdrawn_on && "p-invalid"} value={formik.values.id&&new Date(formik.values.withdrawn_on)} name="withdrawn_on" onChange={formik.handleChange("withdrawn_on")} showTime hourFormat="24" />
-                                {(formik.errors.withdrawn_on&&formik.touched.withdrawn_on)&& <p className="error">{formik.errors.withdrawn_on}</p>}
+                                <label htmlFor="withdrawn_on">Maturity Term</label>
+                                <Calendar className={formik.touched.withdrawn_on && formik.errors.withdrawn_on && "p-invalid"} value={formik.values.id && new Date(formik.values.withdrawn_on)} name="withdrawn_on" onChange={formik.handleChange("withdrawn_on")} showTime hourFormat="24" />
+                                {formik.errors.withdrawn_on && formik.touched.withdrawn_on && <p className="error">{formik.errors.withdrawn_on}</p>}
+                            </div>
+                            </div>
+                            <div className="card">
+                                <table className="tabler">
+                                    <tr>
+                                        <th className="thr">Amount</th>
+                                        <th className="thr">Rate of Interest</th>
+                                        <th className="thr">Payable amount</th>
+                                    </tr>
+                                    <tr>
+                                        <td className="tdr">{formik.values.amount}</td>
+                                        <td className="tdr">{formik.values.roi}</td>
+                                        <td className="tdr">{formik.values.amount * formik.values.roi}</td>
+                                    </tr>
+                                </table>
                             </div>
                             {<ShareDialogFooter />}
                         </form>
                     </Dialog>
 
-                    <Dialog visible={deleteDepositDialog} style={{ width: "450px" }} header="Confirm" modal footer={deleteShareDialogFooter} onHide={hideDeleteDepositDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: "2rem" }} />
-                            {deposit && (
-                                <span>
-                                    Are you sure you want to delete <b>{deposit.share_value}</b>?
-                                </span>
-                            )}
-                        </div>
 
-                    </Dialog>
-
-                    <Dialog visible={deleteDepositsDialog} style={{ width: "450px" }} header="Confirm" modal footer={deleteDepositsDialogFooter} onHide={hideDeleteProductsDialog}>
-                        <div className="flex align-items-center justify-content-center">
-                            <i className="pi pi-exclamation-triangle mr-3" style={{ fontSize: "2rem" }} />
-                            {deposit && <span>Are you sure you want to delete the selected shares?</span>}
-                        </div>
-                    </Dialog>
                 </div>
             </div>
         </div>

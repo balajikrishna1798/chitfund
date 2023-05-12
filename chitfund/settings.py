@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'dj_rest_auth',
     'rest_framework_simplejwt',
+    'django_filters',
     'basemodel',
     'kyc',
     'sharetype',
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
     'deposit',
     'loan',
     'users',
-   
+
 ]
 
 REST_AUTH = {
@@ -63,20 +64,21 @@ REST_AUTH = {
 # REST_USE_JWT = True
 
 REST_FRAMEWORK = {
- 
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
-    'rest_framework_simplejwt.authentication.JWTAuthentication',
-    'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
-       'rest_framework.authentication.TokenAuthentication',
-   ),
- 
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+
+
 }
 
 SIMPLE_JWT = {
-     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-     'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
-      'ROTATE_REFRESH_TOKENS': True,
-      'BLACKLIST_AFTER_ROTATION': True
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True
 }
 
 MIDDLEWARE = [
@@ -122,7 +124,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR,'frontend/build')
+            os.path.join(BASE_DIR, 'frontend/build')
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -191,6 +193,7 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR,'frontend/build/static')
+    os.path.join(BASE_DIR, 'frontend/build/static')
 ]

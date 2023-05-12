@@ -12,7 +12,14 @@ class shareholderViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         user = self.request.user
-        serializer.save(created_by=user)
+        if(shareholder.objects.count()<=0):
+            starting_share = 0
+            ending_share = starting_share + self.request.data.get("number_of_shares")
+        else:
+            starting_share= shareholder.objects.all().last().ending_share
+            ending_share = starting_share + self.request.data.get("number_of_shares")
+            
+        serializer.save(created_by=user,starting_share=starting_share+1,ending_share=ending_share)
 
     def perform_update(self, serializer):
         user = self.request.user

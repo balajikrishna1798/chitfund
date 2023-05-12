@@ -25,6 +25,9 @@ import '../App.css';
 import Deposit from './Deposit';
 import Loan from './Loan';
 import Shareholder from './Shareholder';
+import Due from './Due';
+import Payment from './Payment';
+import Receipt from './Receipt';
 
 const Main = () => {
   const [layoutMode, setLayoutMode] = useState('static');
@@ -150,9 +153,13 @@ const Main = () => {
       items: [
         { label: 'KYC', icon: 'pi pi-fw pi-id-card', to: '/kyc' },
         { label: 'Sharetype', icon: 'pi pi-fw pi-book', to: '/sharetype' },
+        { label: 'Shareholder', icon: 'pi pi-fw pi-users', to: '/shareholder' },
         { label: 'Deposit', icon: 'pi pi-fw pi-money-bill', to: '/deposit' },
         { label: 'Loan', icon: 'pi pi-fw pi-money-bill', to: '/loan' },
-        { label: 'Shareholder', icon: 'pi pi-fw pi-users', to: '/shareholder' },
+        { label: 'Due', icon: 'pi pi-fw pi-money-bill', to: '/due' },
+        { label: 'Payments', icon: 'pi pi-fw pi-money-bill', to: '/payment' },
+        { label: 'Receipt', icon: 'pi pi-fw pi-money-bill', to: '/receipt' },
+
       ]
 
     },
@@ -203,6 +210,9 @@ const Main = () => {
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/loan" element={<Loan />} />
             <Route path="/shareholder" element={<Shareholder />} />
+            <Route path="/due" element={<Due />} />
+            <Route path="/payment" element={<Payment />} />
+            <Route path="/receipt" element={<Receipt />} />
 
           </Routes>
 

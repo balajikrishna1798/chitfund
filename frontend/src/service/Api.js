@@ -27,14 +27,13 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
 export const api = createApi({
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['Sharetype','Kyc','Deposit','Loan',"Shareholder"],
+    tagTypes: ['Sharetype','Kyc','Deposit','Loan',"Shareholder","Due","Payment"],
     endpoints: (build) => ({
         getShare: build.query({
-            query: () => '/sharetype/sharetype/',
+            query:(page = 0) => `/sharetype/sharetype/?page=${page+1}`,
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Sharetype', id:"LIST" }],
         }),
-
         addShare: build.mutation({
             query: (body) => ({
                 url: 'sharetype/sharetype/',
@@ -68,7 +67,14 @@ export const api = createApi({
             // Invalidates all queries that subscribe to this Post `id` only.
             invalidatesTags: (result, error, id) => [{ type: 'Sharetype', id:"LIST" }],
         }),
+
         getKyc: build.query({
+            query:(page = 0) => `/kyc/kyc/?page=${page+1}`,
+            // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Kyc', id:"LIST" }],
+        }),
+
+        getKycs: build.query({
             query: () => '/kyc/kyc/',
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Kyc', id:"LIST" }],
@@ -105,16 +111,7 @@ export const api = createApi({
 
             invalidatesTags: (result, error, {id} ) => [{ type: 'Kyc', id:"LIST" }],
           }),
-          deleteKyc: build.mutation({
-            query(id) {
-              return {
-                url: `kyc/kyc/${id}`,
-                method: 'DELETE',
-              }
-            },
-            // Invalidates all queries that subscribe to this Post `id` only.
-            invalidatesTags: (result, error, id) => [{ type: 'Kyc', id }],
-        }),
+
         getDeposit: build.query({
             query: () => '/deposit/deposit/',
             // transformResponse: (response, meta, arg) => response,
@@ -194,6 +191,11 @@ export const api = createApi({
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Shareholder', id:"LIST" }],
         }),
+        getKycShareholder: build.query({
+            query: () => '/loan/kycShareholder/',
+            // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Shareholder', id:"LIST" }],
+        }),
         addShareholder: build.mutation({
             query: (body) => ({
                 url: 'shareholder/shareholder/',
@@ -216,15 +218,24 @@ export const api = createApi({
 
             invalidatesTags: (result, error, {id} ) => [{ type: 'Shareholder', id:"LIST" }],
           }),
-          deleteShareholder: build.mutation({
-            query(id) {
-              return {
-                url: `shareholder/shareholder/${id}`,
-                method: 'DELETE',
-              }
-            },
-            // Invalidates all queries that subscribe to this Post `id` only.
-            invalidatesTags: (result, error, id) => [{ type: 'Shareholder', id }],
+          getDue: build.query({
+            query: () => '/loan/due/',
+            // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Due', id:"LIST" }],
+        }),
+
+        getPayment: build.query({
+            query: () => '/loan/payment/',
+            // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Payment', id:"LIST" }],
+        }),
+        addPayment: build.mutation({
+            query: (body) => ({
+                url: 'loan/payment/',
+                method: 'POST',
+                body,
+            }),
+            invalidatesTags: (result, error) => [{ type: 'Payment' , id:"LIST" }],
         }),
 
     }),
@@ -234,6 +245,7 @@ export const api = createApi({
 
 export const {
     useGetShareQuery,
+    useGetDueQuery,
     useGetDepositQuery,
     useGetLoanQuery,
     useAddShareMutation,
@@ -241,16 +253,17 @@ export const {
     useAddLoanMutation,
     useUpdateShareMutation,
     useDeleteDepositMutation,
+    useGetKycShareholderQuery,
     useDeleteShareMutation,
     useGetKycQuery,
     useAddKycMutation,
+    useAddPaymentMutation,
     useUpdateDepositMutation,
     useUpdateLoanMutation,
     useUpdateKycMutation,
-    useDeleteKycMutation,
     useDeleteLoanMutation,
     useCheckKycMutation,
-    useDeleteShareholderMutation,
+    useGetPaymentQuery,
     useGetShareholderQuery,
     useUpdateShareholderMutation,
     useAddShareholderMutation,

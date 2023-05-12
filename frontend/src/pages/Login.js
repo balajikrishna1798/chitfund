@@ -16,7 +16,7 @@ const LoginPage = () => {
 
     const onClick = async() => {
         try{
-            await dispatch(login({username,password}))
+            dispatch(login({username,password}))
             navigate('/')
         }
         catch{
