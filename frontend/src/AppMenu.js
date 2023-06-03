@@ -83,7 +83,7 @@ const AppSubmenu = (props) => {
             return (
                 <li className={styleClass} key={i} role="none">
                     {props.root === true && <React.Fragment>
-                        <div className="layout-menuitem-root-text" aria-label={item.label}>{item.label}</div>
+                        <div className="layout-menuitem-root-text headtext" aria-label={item.label}>{item.label}</div>
                         <AppSubmenu items={item.items} onMenuItemClick={props.onMenuItemClick} />
                     </React.Fragment>}
                 </li>

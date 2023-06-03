@@ -7,11 +7,16 @@ export const KycApi = createApi({
     tagTypes: ["Kyc"],
     endpoints: (build) => ({
 getKyc: build.query({
-    query:(page = 0) => `/kyc/kyc/?page=${page+1}`,
+    query:(data) => `/kyc/kyc/?page=${data.page+1}&search=${data.search}`,
     // transformResponse: (response, meta, arg) => response,
     providesTags: (result, error) => [{ type: 'Kyc', id:"LIST" }],
 }),
 
+getSingleKyc: build.query({
+    // note: an optional `queryFn` may be used in place of `query`
+    query: (id) => ({ url: `kyc/kyc/${id}` }),
+    providesTags: (result, error) => [{ type: 'Kyc', id:"LIST" }],
+}),
 getKycs: build.query({
     query: () => '/kyc/all',
     // transformResponse: (response, meta, arg) => response,
@@ -60,6 +65,7 @@ updateKyc: build.mutation({
 
 export const {
     useGetKycQuery,
+    useGetSingleKycQuery,
     useGetKycsQuery,
     useAddKycMutation,
     useUpdateKycMutation,

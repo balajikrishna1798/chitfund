@@ -7,8 +7,8 @@ export const AppTopbar = (props) => {
     return (
         <div className="layout-topbar">
             <Link to="/" className="layout-topbar-logo">
-                <img src={props.layoutColorMode === 'light' ? 'assets/layout/images/logo-dark.svg' : 'assets/layout/images/logo-white.svg'} alt="logo"/>
-                <span>CHITFUND</span>
+                <img src={props.layoutColorMode === 'light' ? '/assets/layout/images/logo-dark.svg' : '/assets/layout/images/logo-white.svg'} alt="logo"/>
+                <span className='Appheading'>CHITFUND</span>
             </Link>
 
             <button type="button" className="p-link  layout-menu-button layout-topbar-button" onClick={props.onToggleMenuClick}>
@@ -19,7 +19,7 @@ export const AppTopbar = (props) => {
                 <i className="pi pi-ellipsis-v" />
             </button>
 
-                <ul className={classNames("layout-topbar-menu lg:flex origin-top", {'layout-topbar-menu-mobile-active': props.mobileTopbarMenuActive })}>
+                {/* <ul className={classNames("layout-topbar-menu lg:flex origin-top", {'layout-topbar-menu-mobile-active': props.mobileTopbarMenuActive })}>
                     <li>
                         <button className="p-link layout-topbar-button" onClick={props.onMobileSubTopbarMenuClick}>
                             <i className="pi pi-calendar"/>
@@ -38,7 +38,7 @@ export const AppTopbar = (props) => {
                             <span>Profile</span>
                         </button>
                     </li>
-                </ul>
+                </ul> */}
         </div>
     );
 }

@@ -16,8 +16,8 @@ const LoginPage = () => {
 
     const onClick = async() => {
         try{
-            dispatch(login({username,password}))
-            navigate('/')
+            await dispatch(login({username,password}))
+            await navigate('/')
         }
         catch{
             console.log("error")

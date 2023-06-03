@@ -13,6 +13,8 @@ class Emi_Periods(StrEnum):
   SixMonths = "6 Months"
   TwelveMonths = "12 Months"
   TwentyFourMonths = "24 Months"
+  ThirtyMonths = "24 Months"
+  ThirtyFourMonths = "24 Months"
 
   @classmethod
   def choices(cls):

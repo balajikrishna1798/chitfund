@@ -7,6 +7,16 @@ export const ShareholderApi = createApi({
     tagTypes: ["Shareholder"],
     endpoints: (build) => ({
         getShareholder: build.query({
+            query:(data) => `/shareholder/shareholder/?page=${data.page+1}&search=${data.search}`,
+            // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Shareholder', id:"LIST" }],
+        }),
+        getSingleShareholder: build.query({
+            // note: an optional `queryFn` may be used in place of `query`
+            query: (id) => ({ url: `shareholder/shareholder/${id}` }),
+            providesTags: (result, error) => [{ type: 'Shareholder', id:"LIST" }],
+        }),
+        getShareholders: build.query({
             query: () => '/shareholder/shareholder/',
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Shareholder', id:"LIST" }],
@@ -38,6 +48,8 @@ export const ShareholderApi = createApi({
 
 export const {
     useGetShareholderQuery,
+    useGetShareholdersQuery,
+    useGetSingleShareholderQuery,
     useUpdateShareholderMutation,
     useAddShareholderMutation,
 } = ShareholderApi

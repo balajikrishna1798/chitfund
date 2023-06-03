@@ -31,7 +31,7 @@ export const ShareTypeApi = createApi({
     reducerPath:"ShareTypeApi",
     endpoints: (build) => ({
         getShareType: build.query({
-            query:(page = 0) => `/sharetype/sharetype/?page=${page+1}`,
+            query:(data) => `/sharetype/sharetype/?page=${data.page+1}&share_type=${data.searchSharetype}&search=${data.search}`,
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Sharetype', id:"LIST" }],
         }),

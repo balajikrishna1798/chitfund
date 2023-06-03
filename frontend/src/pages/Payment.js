@@ -7,44 +7,52 @@ import { Toolbar } from "primereact/toolbar";
 import { Dialog } from "primereact/dialog";
 import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
-import { useAddPaymentMutation, useGetPaymentQuery,useGetLoanQuery } from "../service/LoanApi";
+import { useAddPaymentMutation, useGetPaymentQuery } from "../service/DepositApi";
+import { useGetDepositsQuery } from "../service/DepositApi";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Tag } from 'primereact/tag';
-import { useGetShareholderQuery } from "../service/ShareholderApi";
+import { Tag } from "primereact/tag";
+import { created_atBodyTemplate } from "../components/createdAtBodyTemplate";
+import { Calendar } from "primereact/calendar";
+import Meta from "../components/Meta";
+import { InputNumber } from "primereact/inputnumber";
 
 const Payment = () => {
     const [addPayment] = useAddPaymentMutation();
     const [payments, setPayments] = useState(null);
-    const [shareholders, setShareholders] = useState(null);
     const [loanDialog, setLoanDialog] = useState(false);
-    const [loans, setLoans] = useState(null);
-    const [selectedLoans, setSelectedLoans] = useState(null);
-    const [temp, setTemp] = useState(null)
-    const [globalFilter, setGlobalFilter] = useState(null);
+    const [deposits, setDeposits] = useState(null);
+    const [search, setSearch] = useState("");
     const toast = useRef(null);
     const dt = useRef(null);
-    const { data: shareholder } = useGetShareholderQuery();
-    const { data: payment } = useGetPaymentQuery();
-    const { data: loan } = useGetLoanQuery();
+    const [lazyState, setlazyState] = useState({
+        first: 0,
+        rows: 10,
+        page: 0,
+    });
+    const [formValue, setFormValue] = useState({
+        searchCreatedAtDateFrom: "",
+        searchCreatedAtDateTo: "",
+    });
+    const [fromCreatedAtSearch, setFromCreatedAtSearch] = useState("");
+    const [toCreatedAtSearch, setToCreatedAtSearch] = useState("");
+    const { data: deposit } = useGetDepositsQuery();
+    const { data: payment } = useGetPaymentQuery({ page: lazyState?.page, search: search, searchCreatedAtDateOn: formValue.searchCreatedAtDateFrom, searchCreatedAtDateTo: formValue.searchCreatedAtDateTo });
+    const onPage = (event) => {
+        setlazyState(event);
+    };
 
     useEffect(() => {
-        setShareholders(shareholder);
-        console.log(shareholder);
-    }, [shareholder]);
+        setDeposits(deposit);
+        console.log(deposit);
+    }, [deposit]);
 
     useEffect(() => {
-        console.log(loan);
-        setLoans(loan);
-        // setTemp((loan))
-    }, [loan]);
-
-    useEffect(() => {
-        setPayments(payment);
+        setPayments(payment?.results);
     }, [payment]);
 
     const paymentTypeSchema = Yup.object().shape({
-        loan: Yup.string().required("This field is required"),
+        deposit: Yup.string().required("This field is required"),
         amount: Yup.number()
             .required("This field is required")
             .moreThan(0)
@@ -54,17 +62,16 @@ const Payment = () => {
     const formik = useFormik({
         initialValues: {
             id: null,
-            // shareholder: null,
             amount: null,
-            loan:null
+            deposit: null,
         },
         validationSchema: paymentTypeSchema,
         onSubmit: async (values) => {
-            const { shareholder, amount,loan } = values;
+            const { amount, deposit } = values;
 
             let _payments = [...payments];
 
-            await addPayment({ shareholder, amount,loan })
+            await addPayment({ amount, deposit })
                 .unwrap()
                 .then((payload) => toast.current.show({ severity: "success", summary: "Successfull", detail: "Payment Created", life: 3000 }))
                 .catch((error) => toast.current.show({ severity: "warn", summary: "Error", detail: "Server Error", life: 3000 }));
@@ -83,11 +90,9 @@ const Payment = () => {
         setLoanDialog(false);
     };
 
-
     const exportCSV = () => {
         dt.current.exportCSV();
     };
-
 
     const leftToolbarTemplate = () => {
         return (
@@ -127,32 +132,26 @@ const Payment = () => {
     };
 
     const statusBodyTemplate = (product) => {
-        return <Tag style={{width:50,height:30}} value={`${product.active===true?"Active":"InActive"}`} severity={getSeverity(product)}></Tag>;
+        return <Tag style={{ width: 50, height: 30 }} value={`${product.active === true ? "Active" : "InActive"}`} severity={getSeverity(product)}></Tag>;
     };
 
     const getSeverity = (product) => {
         console.log(product);
         switch (product.active) {
             case true:
-                return 'success';
+                return "success";
 
             case false:
-                return 'warning';
-
+                return "warning";
 
             default:
                 return null;
         }
     };
 
-
     const header = (
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">Payments</h5>
-            <span className="block mt-2 md:mt-0 p-input-icon-left">
-                <i className="pi pi-search" />
-                <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Search..." />
-            </span>
         </div>
     );
 
@@ -163,14 +162,12 @@ const Payment = () => {
         </p>
     );
 
-
-
     const loanOptionTemplate = (option) => {
-        console.log('ppppp',option);
+        console.log("ppppp", option);
         return (
             <div className="flex align-items-center">
- <div> {option.kyc_detail.first_name}</div>
-                 <div> - {option.slug}</div>
+                <div> {option.kyc_detail.first_name}</div>
+                <div> - {option.slug}</div>
             </div>
         );
     };
@@ -179,8 +176,10 @@ const Payment = () => {
         console.log(rowData);
         return (
             <>
-               <div> {rowData.due_detail[0].loan_detail.kyc_detail.first_name}
-                 - {rowData.due_detail[0].loan_detail.slug}</div>
+                <div>
+                    {" "}
+                    {rowData?.payable_detail[0]?.deposit_detail?.kyc_detail?.first_name}- {rowData?.payable_detail[0]?.deposit_detail.slug}
+                </div>
             </>
         );
     };
@@ -189,60 +188,121 @@ const Payment = () => {
         if (option) {
             return (
                 <div className="flex align-items-center">
-                <div> {option.kyc_detail.first_name}</div>
-                 <div> - {option.slug}</div>
+                    <div> {option.kyc_detail.first_name}</div>
+                    <div> - {option.slug}</div>
                 </div>
             );
         }
 
         return <span>{props.placeholder}</span>;
     };
-
+    const onSubmit = (event) => {
+        event.preventDefault();
+        setFormValue({
+            searchCreatedAtDateFrom: fromCreatedAtSearch,
+            searchCreatedAtDateTo: toCreatedAtSearch,
+        });
+    };
+    const clearForm = () => {
+        setFromCreatedAtSearch("");
+        setToCreatedAtSearch("");
+        setFormValue({
+            searchCreatedAtDateFrom: "",
+            searchCreatedAtDateTo: "",
+        });
+    };
+    const handleLoanDateSearch = (e) => {
+        setFromCreatedAtSearch(e.target.value?.toLocaleDateString());
+    };
+    const handleLoanToDateSearch = (e) => {
+        setToCreatedAtSearch(e.target.value?.toLocaleDateString());
+    };
+    const onHandleSearchChange = (e) => {
+        setSearch(e.target.value);
+    };
+    const handleAmountChange = (e) => {
+        formik.setFieldValue("amount", e.value);
+    };
     return (
         <div className="grid crud-demo">
+            <Meta title={"Payments"} />
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
+
+
+                    <form onSubmit={onSubmit}>
+
+                        <div className="card grid justify-content-between" style={{ background: "linear-gradient(to right, #cac531, #f3f9a7)" }}>
+                            <div className="col-12 md:col-3 xl:col-3">
+                                <div className="flex mb-3">
+                                    <div className="mt-4 xl:w-15rem sm:w-full w-full">
+                                        <InputText className=" w-full" value={search} id="search" type="text" name="Search" placeholder="Search" onChange={(e) => onHandleSearchChange(e)} />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="col-12 md:col-3 xl:col-3" style={{ gap: "4px" }}>
+                            <Calendar placeholder="Payment Date from" value={fromCreatedAtSearch} className="mb-2 w-full" onChange={(e) => handleLoanDateSearch(e)} />
+                            <Calendar placeholder="Payment Date to" value={toCreatedAtSearch} className="w-full" onChange={(e) => handleLoanToDateSearch(e)} />
+                            </div>
+
+
+                            <div className="col-12 md:col-2 xl:col-3 flex flex-column">
+                                <div className="xl:ml-5">
+                                <Button type="submit" style={{ height: "2rem", display: "flex", justifyContent: "center" }} className="mt-3 w-full md:w-8rem">
+                            Submit
+                        </Button>
+                                </div>
+                                <div className="xl:ml-5">
+                                <Button onClick={clearForm} style={{ height: "2rem", background: "red", display: "flex", justifyContent: "center" }} className="w-full md:w-8rem mt-2">
+                            Clear
+                        </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                     <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
                     <DataTable
                         ref={dt}
                         value={payments}
-                        selection={selectedLoans}
-                        onSelectionChange={(e) => setSelectedLoans(e.value)}
                         dataKey="id"
                         paginator
                         rows={10}
-                        rowsPerPageOptions={[5, 10, 25]}
+                        onPage={onPage}
+                        lazy
+                        first={lazyState.first}
+                        totalRecords={payment?.count}
                         className="datatable-responsive"
                         paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                         currentPageReportTemplate="Showing {first} to {last} of {totalRecords} payments"
-                        globalFilter={globalFilter}
                         emptyMessage="No Payments are found."
                         header={header}
                         responsiveLayout="scroll"
                     >
-                        <Column field="loan" header="Loan" sortable body={loanBodyTemplate}></Column>
-                        <Column field="amount" header="Amount" sortable body={nameBodyTemplate}></Column>
-                        <Column field="active" header="Status" dataType="boolean" sortable body={statusBodyTemplate}></Column>
-
+                        <Column field="deposit" header="Deposit" body={loanBodyTemplate}></Column>
+                        <Column field="amount" header="Amount" body={nameBodyTemplate}></Column>
+                        <Column field="created_at" header="Created At" body={created_atBodyTemplate}></Column>
+                        <Column field="active" header="Status" dataType="boolean" body={statusBodyTemplate}></Column>
                     </DataTable>
 
                     <Dialog visible={loanDialog} style={{ width: "500px" }} header="Payments" modal className="p-fluid" onHide={hideDialog}>
-                        <form onSubmit={formik.handleSubmit} className="flex flex-column gap-2">
-
+                        <form onSubmit={formik.handleSubmit} className="flex flex-column gap-2" autoComplete="off">
                             <div className="field">
-                                <label htmlFor="loan">Loan</label>
+                                <label htmlFor="deposit">Deposit</label>
                                 <Dropdown
-                                    value={formik.values.loan}
-                                    name="loan"
-                                    id="loan"
-                                    onChange={formik.handleChange("loan")}
-                                    options={loans}
+                                    value={formik.values.deposit}
+                                    name="deposit"
+                                    id="deposit"
+                                    onChange={formik.handleChange("deposit")}
+                                    options={deposits}
+                                    filter
+                                    filterBy="kyc_detail.first_name,slug"
                                     valueTemplate={selectedLoanTemplate}
                                     itemTemplate={loanOptionTemplate}
                                     optionLabel="pan"
                                     optionValue="id"
-                                    placeholder="Select Loan"
+                                    placeholder="Select Deposit"
                                     style={{ height: "40px" }}
                                     className={formik.touched.shareholder && formik.errors.shareholder && "p-invalid"}
                                 />
@@ -252,18 +312,14 @@ const Payment = () => {
                                 <div className="field">
                                     <label htmlFor="amount">Amount</label>
                                     <br />
-                                    <InputText value={formik.values.amount} className={`w-full md:w-15rem ${formik.touched.amount && formik.errors.amount && "p-invalid"}`} placeholder="Amount" name="amount" id="amount" type="number" step="0.1" onChange={formik.handleChange("amount")} />
+                                    <InputNumber value={formik.values.amount} className={`w-full md:w-15rem ${formik.touched.amount && formik.errors.amount && "p-invalid"}`} placeholder="Amount" name="amount" id="amount"  onChange={handleAmountChange} />
                                     {formik.errors.amount && formik.touched.amount && <p className="error">{formik.errors.amount}</p>}
                                 </div>
-
                             </div>
-
-
 
                             <PaymentDialogFooter />
                         </form>
                     </Dialog>
-
                 </div>
             </div>
         </div>

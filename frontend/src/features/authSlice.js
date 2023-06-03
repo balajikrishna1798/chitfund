@@ -1,5 +1,6 @@
 import { createSlice,createAsyncThunk } from "@reduxjs/toolkit";
 import { authLogin } from "../service/Auth";
+import { useNavigate } from "react-router-dom";
 
 export const login = createAsyncThunk(
     'auth/login',
@@ -18,8 +19,8 @@ const initialState = {
     "error": false
 }
 
-
 const accountSlice = createSlice({
+
     name: "auth",
     initialState,
     reducers: {

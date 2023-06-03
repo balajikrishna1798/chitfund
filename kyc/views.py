@@ -5,27 +5,21 @@ from kyc.serializers import kycSerializer
 from rest_framework import status,filters
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.db.models import Count
-from rest_framework.pagination import PageNumberPagination
-from django.db.models import OuterRef,Exists
+from django.db.models import Count,Sum
+from django.db.models import OuterRef,Exists,Q
 from shareholder.models import shareholder
 
 # Create your views here.
 
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 10000
-
 class kycViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAdminUser]
-    queryset = kyc.objects.all().annotate(loan_count=Count("loan"))
+    queryset = kyc.objects.all().annotate(deposit_count=Count("deposit", distinct=True),loan_count=Count("loan", distinct=True),due_count=Count("loan__due",filter=Q(loan__due__active=True),distinct=True),payable_count=Count("deposit__payable",filter=Q(loan__due__active=True),distinct=True),is_shareholder=Exists(shareholder.objects.filter(kyc=OuterRef('pk'))))
+    
     serializer_class = kycSerializer
-    pagination_class = StandardResultsSetPagination
-
     filter_backends = [filters.SearchFilter]
-    search_fields = ['first_name', 'mobile_number','slug']
+    search_fields = ['first_name','pan','email','mobile_number','slug']
+
     def perform_create(self, serializer):
         user = self.request.user
         serializer.save(created_by=user)
@@ -52,6 +46,6 @@ class KycValidationView(APIView):
 class kycShareholder(APIView):
     permission_classes = [IsAdminUser]
     def get(self,request):
-        qs = kyc.objects.annotate(is_shareholder=Exists(shareholder.objects.filter(kyc_id=OuterRef('pk')))).filter(is_shareholder=True)
+        qs = kyc.objects.annotate(is_shareholder=Exists(shareholder.objects.filter(kyc=OuterRef('pk')))).filter(is_shareholder=True)
         return Response(kycSerializer(qs,many=True).data)
 

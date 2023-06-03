@@ -42,7 +42,7 @@ const Dashboard = (props) => {
     const { data: getShareholder } = useGetShareholderQuery();
 
     useEffect(() => {
-        setShareholders(getShareholder);
+        setShareholders(getShareholder?.results);
     }, [getShareholder]);
     const applyLightTheme = () => {
         const lineOptions = {

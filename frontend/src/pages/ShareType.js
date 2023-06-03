@@ -11,20 +11,22 @@ import { Dropdown } from "primereact/dropdown";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { slugBodyTemplate } from "../components/SlugBodyTemplate";
+import { RadioButton } from "primereact/radiobutton";
+import { created_atBodyTemplate } from "../components/createdAtBodyTemplate";
+import { InputNumber } from "primereact/inputnumber";
+import Meta from "../components/Meta";
 
 const ShareType = () => {
     const sharetypechoice = [
         { name: "Equity", value: "Equity" },
         { name: "Pref", value: "Pref" },
     ];
-
     const [addShare] = useAddShareTypeMutation();
     const [shareTypes, setShareTypes] = useState(null);
 
     const [shareTypeDialog, setShareDialog] = useState(false);
     const [deleteShareTypeDialog, setDeleteProductDialog] = useState(false);
     const [deleteShareTypesDialog, setDeleteProductsDialog] = useState(false);
-    const [selectedShareTypes, setSelectedShareTypes] = useState(null);
     const toast = useRef(null);
     const dt = useRef(null);
     const [lazyState, setlazyState] = useState({
@@ -32,9 +34,12 @@ const ShareType = () => {
         rows: 10,
         page: 0,
     });
-    const { data, isLoading: loading } = useGetShareTypeQuery(lazyState.page);
     const [deleteShare] = useDeleteShareTypeMutation();
     const [updateShare] = useUpdateShareTypeMutation();
+    const [search, setSearch] = useState("");
+    const [searchSharetype, setSearchSharetype] = useState("");
+
+    const { data, isLoading: loading } = useGetShareTypeQuery({ page: lazyState.page, search: search, searchSharetype: searchSharetype });
 
     const onPage = (event) => {
         console.log("event", event);
@@ -45,10 +50,8 @@ const ShareType = () => {
         setShareTypes(data && data.results);
     }, [data]);
     const shareTypeSchema = Yup.object().shape({
-        share_value: Yup.number()
-            .required("This Field is Required")
-            .moreThan(0, "Should be greater than Zero")
-            .test("maxDigitsAfterDecimal", "number field must have 4 digits after decimal or less", (number) => /^\d+(\.\d{1,4})?$/.test(number)),
+        share_value: Yup.string().required("This Field is Required"),
+
         share_type: Yup.string().required("This Field is Required"),
     });
 
@@ -100,16 +103,6 @@ const ShareType = () => {
         setDeleteProductsDialog(false);
     };
 
-    const created_atBodyTemplate = (rowData) => {
-        console.log(rowData);
-        return (
-            <>
-                <span className="p-column-title"> Amount</span>
-                {new Date(rowData.created_at).toLocaleString()}
-            </>
-        );
-    };
-
     const editShareType = (share) => {
         formik.setValues({ ...share });
         setShareDialog(true);
@@ -139,11 +132,6 @@ const ShareType = () => {
     const exportCSV = () => {
         dt.current.exportCSV();
     };
-
-    const confirmDeleteSelected = () => {
-        setDeleteProductsDialog(true);
-    };
-
 
     const leftToolbarTemplate = () => {
         return (
@@ -194,7 +182,7 @@ const ShareType = () => {
         <div className="flex flex-column md:flex-row md:justify-content-between md:align-items-center">
             <h5 className="m-0">ShareTypes</h5>
             {/* <span className="block mt-2 md:mt-0 p-input-icon-left"> */}
-                {/* <i className="pi pi-search" />
+            {/* <i className="pi pi-search" />
                 <InputText type="search" onInput={(e) => setGlobalFilter(e.target.value)} placeholder="Search..." /> */}
             {/* </span> */}
         </div>
@@ -215,15 +203,76 @@ const ShareType = () => {
     const deleteShareTypesDialogFooter = (
         <>
             <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteShareTypesDialog} />
-
         </>
     );
 
+    const handleSearchShareChange = (e) => {
+        setSearchSharetype(e.target.value);
+    };
+
+    const clearRadio = (e) => {
+        setSearchSharetype("");
+    };
+    const handleShareValueChange = (e) => {
+        formik.setFieldValue("share_value", e.value);
+    };
     return (
         <div className="grid crud-demo">
+            <Meta title={"ShareTypes"} />
             <div className="col-12">
                 <div className="card">
                     <Toast ref={toast} />
+                    {/* <div className="card flex align-items-center justify-content-between" style={{background:"linear-gradient(to right, #cac531, #f3f9a7)",height:"9rem"}}>
+                    <div className="flex xl:flex-row md:flex-row sm:flex-row flex-column justify-content-between my-5" style={{ gap: "5px" }}>
+<div>
+                    <InputText placeholder="Search" style={{ height: "40px" }} name="search" id="share_value" type="text" value={search} onChange={(e) => setSearch(e.target.value)} />
+                    </div>
+                        <div className=" card flex flex-column mt-3" >
+                        <div className="flex">
+                            <div className="flex">
+                                <RadioButton className="w-full md:w-2rem" name="searchSharetype" value="Equity" checked={searchSharetype === "Equity"} onChange={(e) => handleSearchShareChange(e)} optionLabel="name" placeholder="Search for Sharetype" />
+
+                                <label htmlFor="share_type">Equity</label>
+                            </div>
+
+                            <div className="flex ml-5" style={{height:"20px"}}>
+                                <RadioButton className="mb-3 w-full md:w-2rem" value="Pref" name="searchSharetype" checked={searchSharetype === "Pref"} onChange={(e) => handleSearchShareChange(e)} optionLabel="name" placeholder="Search for Sharetype" />
+                                <label htmlFor="share_type">Pref</label>
+                            </div>
+                            </div>
+                            <Button className="ml-5 mr-5 mt-3 align-items-center justify-content-center" style={{height:25}} onClick={(e) => clearRadio(e)} >Clear</Button>
+                            </div>
+                            </div>
+                    </div> */}
+                    <div
+                        className="card flex justify-content-between xl:align-items-center md:align-items-center xl:flex-row md:flex-row sm:flex-column sm:align-items-center flex-column align-items-center"
+                        style={{ background: "linear-gradient(to right, #cac531, #f3f9a7)", gap: "3px" }}
+                    >
+                        <div>
+                            <InputText className="w-15rem" placeholder="Search" name="search" id="share_value" type="text" value={search} onChange={(e) => setSearch(e.target.value)} />
+                        </div>
+                        <div className="card">
+                            <div>
+                        <div className="flex xl:w-12rem md:w-14rem sm:w-12rem w-12rem justify-content-between">
+                            <div className="flex flex-row">
+                                <RadioButton className="w-full md:w-2rem sm:w-2rem w-2rem" name="searchSharetype" value="Equity" checked={searchSharetype === "Equity"} onChange={(e) => handleSearchShareChange(e)} optionLabel="name" placeholder="Search for Sharetype" />
+
+                                <label htmlFor="share_type">Equity</label>
+                            </div>
+
+                            <div className="flex" style={{ height: "20px" }}>
+                                <RadioButton className="mb-3 w-full md:w-2rem sm:w-2rem w-2rem" value="Pref" name="searchSharetype" checked={searchSharetype === "Pref"} onChange={(e) => handleSearchShareChange(e)} optionLabel="name" placeholder="Search for Sharetype" />
+                                <label htmlFor="share_type">Pref</label>
+                            </div>
+                            </div>
+<div className="flex justify-content-center mt-2">
+                                <Button className="align-items-center justify-content-center" style={{ height: 25 }} onClick={(e) => clearRadio(e)}>
+                                    Clear
+                                </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <Toolbar className="mb-4" left={leftToolbarTemplate} right={rightToolbarTemplate}></Toolbar>
                     {
                         <DataTable
@@ -236,8 +285,6 @@ const ShareType = () => {
                             rows={10}
                             totalRecords={data && data.count}
                             onPage={onPage}
-                            sortField={lazyState.sortField}
-                            sortOrder={lazyState.sortOrder}
                             loading={loading}
                             scrollable
                             scrollHeight="400px"
@@ -248,10 +295,10 @@ const ShareType = () => {
                             header={header}
                             responsiveLayout="scroll"
                         >
-                            <Column field="slug" header="ShareType ID" sortable body={slugBodyTemplate}></Column>
-                            <Column field="share_type" header="Share Type" sortable body={shareTypeBodyTemplate}></Column>
-                            <Column field="share_value" header="Share Value" sortable body={shareValueBodyTemplate}></Column>
-                            <Column field="created_at" header="Created On" sortable body={created_atBodyTemplate}></Column>
+                            <Column field="slug" header="ShareType ID" body={slugBodyTemplate}></Column>
+                            <Column field="share_type" header="Share Type" body={shareTypeBodyTemplate}></Column>
+                            <Column field="share_value" header="Share Value" body={shareValueBodyTemplate}></Column>
+                            <Column field="created_at" header="Created On" body={created_atBodyTemplate}></Column>
                             <Column body={actionBodyTemplate}></Column>
                         </DataTable>
                     }
@@ -273,7 +320,16 @@ const ShareType = () => {
                             </div>
                             <div className="field">
                                 <label htmlFor="share_value">Share Value</label>
-                                <InputText className={formik.touched.share_value && formik.errors.share_value && "p-invalid"} name="share_value" id="share_value" type="number" value={formik.values.share_value} step="10" onChange={formik.handleChange("share_value")} />
+                                <InputNumber
+                                    className={formik.touched.share_value && formik.errors.share_value && "p-invalid"}
+                                    name="share_value"
+                                    id="share_value"
+                                    locale="en-IN"
+                                    minFractionDigits={2}
+                                    maxFractionDigits={4}
+                                    value={formik.values.share_value}
+                                    onChange={(e) => handleShareValueChange(e)}
+                                />
                                 {formik.errors.share_value && formik.touched.share_value && <p className="error">{formik.errors.share_value}</p>}
                             </div>
 

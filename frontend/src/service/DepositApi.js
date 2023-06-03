@@ -4,7 +4,7 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 export const DepositApi = createApi({
     baseQuery: baseQueryWithReauth,
     reducerPath:"DepositReducer",
-    tagTypes: ["Deposit"],
+    tagTypes: ["Deposit","Payment"],
     endpoints: (build) => ({
         getDeposits: build.query({
             query: () => '/deposit/all/',
@@ -13,9 +13,9 @@ export const DepositApi = createApi({
         }),
 
         getDeposit: build.query({
-            query:(page = 0) => `/deposit/deposit/?page=${page+1}`,
+            query:(data) => `/deposit/deposit/?page=${data.page+1}&search=${data.search}&deposited_on_after=${data.searchDepositDateOn}&deposited_on_before=${data.searchDepositDateTo}&maturity_term_after=${data.searchMaturityDateFrom}&maturity_date_before=${data.searchMaturityDateTo}`,
             // transformResponse: (response, meta, arg) => response,
-            providesTags: (result, error) => [{ type: 'Kyc', id:"LIST" }],
+            providesTags: (result, error) => [{ type: 'Deposit', id:"LIST" }],
         }),
 
         addDeposit: build.mutation({
@@ -49,12 +49,33 @@ export const DepositApi = createApi({
             // Invalidates all queries that subscribe to this Post `id` only.
             invalidatesTags: (result, error, id) => [{ type: 'Deposit', id:"LIST" }],
         }),
+        getPayment: build.query({
+          query:(data) => `/deposit/payment/?page=${data.page+1}&search=${data.search}&created_at_after=${data.searchCreatedAtDateOn}&created_at_before=${data.searchCreatedAtDateTo}`,
+          // transformResponse: (response, meta, arg) => response,
+          providesTags: (result, error) => [{ type: 'Payment', id:"LIST" }],
+      }),
+      addPayment: build.mutation({
+          query: (body) => ({
+              url: 'deposit/payment/',
+              method: 'POST',
+              body,
+          }),
+          invalidatesTags: (result, error) => [{ type: 'Payment' , id:"LIST" }],
+      }),
+        getPayable: build.query({
+            query:(data) => `/deposit/payable/?page=${data.page+1}&search=${data.search}&due_date_after=${data.searchPayableDateOn}&due_date_before=${data.searchPayableDateTo}`,
+            // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Deposit', id:"LIST" }],
+        }),
 }),
 })
 
 export const {
     useGetDepositQuery,
     useGetDepositsQuery,
+    useAddPaymentMutation,
+    useGetPaymentQuery,
+    useGetPayableQuery,
     useAddDepositMutation,
     useUpdateDepositMutation,
 } = DepositApi

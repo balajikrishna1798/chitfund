@@ -6,19 +6,19 @@ from sharetype.serializers import sharetypeSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import filters
+import django_filters.rest_framework
+from .filterset import KycFilter
 
 # Create your views here.
-
-class StandardResultsSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 10000
 
 class sharetypeViewSet(viewsets.ModelViewSet):
     queryset = sharetype.objects.all()
     serializer_class = sharetypeSerializer
-    # permission_classes = [IsAdminUser]
-    pagination_class = StandardResultsSetPagination
+    permission_classes = [IsAdminUser]
+    filter_backends = [django_filters.rest_framework.DjangoFilterBackend,filters.SearchFilter]
+    filterset_class = KycFilter
+    search_fields = ['slug']
 
     def perform_create(self, serializer):
         user = self.request.user

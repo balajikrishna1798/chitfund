@@ -9,11 +9,11 @@ from basemodel.utils import unique_slugify
 
 # Create your models here.
 class shareholder(BaseModel):
-    kyc = models.ForeignKey(kyc, null=True, on_delete=models.CASCADE)
+    kyc = models.ForeignKey(kyc, null=True, on_delete=models.CASCADE,related_name="shareholder")
+    share_type = models.ForeignKey(sharetype, null=True, on_delete=models.CASCADE)
     number_of_shares = models.IntegerField(null=False,blank=False)
     starting_share = models.IntegerField(null=True,blank=True)
     ending_share = models.IntegerField(null=True,blank=True)
-    share_type = models.ForeignKey(sharetype, null=True, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
     slug = models.SlugField(null=True,blank=True,unique=True)
     created_by = models.ForeignKey(User, null= True, blank= True, on_delete=models.CASCADE,

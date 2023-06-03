@@ -1,8 +1,12 @@
 from rest_framework import serializers
 from kyc.models import kyc
+
 class kycSerializer(serializers.ModelSerializer):
     is_shareholder = serializers.BooleanField(read_only=True)
+    deposit_count = serializers.IntegerField(read_only=True)
     loan_count = serializers.IntegerField(read_only=True)
+    due_count = serializers.IntegerField(read_only=True)
+    payable_count = serializers.IntegerField(read_only=True)
     class Meta:
         model = kyc
         fields = '__all__'

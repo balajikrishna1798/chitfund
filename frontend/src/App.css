@@ -10,3 +10,15 @@
     transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
     border-radius: 6px;
   }
+.Appheading{
+    color: #ffffff;
+}
+.p-link.layout-menu-button.layout-topbar-button{
+    color: #ffffff;
+}
+.p-link.layout-menu-button.layout-topbar-button:hover{
+    color: black;
+}
+*{
+    box-shadow: none !important;
+}

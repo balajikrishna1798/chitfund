@@ -4,9 +4,10 @@ from .views import *
 router = routers.DefaultRouter()
 router.register('loan',loanViewSet,basename="loan")
 router.register('due',dueViewSet,basename="due")
-router.register('payment',paymentViewSet,basename="payment")
+router.register('receipt',receiptViewSet,basename="receipt")
+
 
 urlpatterns = [
     path("",include(router.urls)),
-    path("/all",LoanViews.as_view())
+    path("all/",LoanViews.as_view())
 ]

@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import classNames from 'classnames';
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { CSSTransition } from 'react-transition-group';
+import { CSSTransition  } from 'react-transition-group';
 
 import { AppTopbar } from '../AppTopbar';
-import { AppFooter } from '../AppFooter';
 import { AppMenu } from '../AppMenu';
 import { AppConfig } from '../AppConfig';
 
 import Dashboard from '../components/Dashboard';
 import UserKyc from './UserKyc'
 import ShareType from './ShareType'
-
 import PrimeReact from 'primereact/api';
 import { Tooltip } from 'primereact/tooltip';
 import 'primereact/resources/primereact.css';
@@ -28,6 +26,9 @@ import Shareholder from './Shareholder';
 import Due from './Due';
 import Payment from './Payment';
 import Receipt from './Receipt';
+import KycViewPage from './KycViewPage';
+import ShareholderViewPage from './ShareholderViewPage';
+import Payable from './Payable';
 
 const Main = () => {
   const [layoutMode, setLayoutMode] = useState('static');
@@ -156,9 +157,11 @@ const Main = () => {
         { label: 'Shareholder', icon: 'pi pi-fw pi-users', to: '/shareholder' },
         { label: 'Deposit', icon: 'pi pi-fw pi-money-bill', to: '/deposit' },
         { label: 'Loan', icon: 'pi pi-fw pi-money-bill', to: '/loan' },
-        { label: 'Due', icon: 'pi pi-fw pi-money-bill', to: '/due' },
         { label: 'Payments', icon: 'pi pi-fw pi-money-bill', to: '/payment' },
         { label: 'Receipt', icon: 'pi pi-fw pi-money-bill', to: '/receipt' },
+        { label: 'Due', icon: 'pi pi-fw pi-money-bill', to: '/due' },
+
+        { label: 'Payable', icon: 'pi pi-fw pi-money-bill', to: '/payable' },
 
       ]
 
@@ -203,6 +206,7 @@ const Main = () => {
 
       <div className="layout-main-container">
         <div className="layout-main">
+
           <Routes>
             <Route path="/" exact element={<Dashboard colorMode={layoutColorMode} location={location} />} />
             <Route path="/kyc" element={<UserKyc />} />
@@ -210,15 +214,16 @@ const Main = () => {
             <Route path="/deposit" element={<Deposit />} />
             <Route path="/loan" element={<Loan />} />
             <Route path="/shareholder" element={<Shareholder />} />
-            <Route path="/due" element={<Due />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/receipt" element={<Receipt />} />
+            <Route path="/due" element={<Due />} />
 
+            <Route path="/payable" element={<Payable />} />
+            <Route path="/kyc/:id" element={<KycViewPage />} />
+            <Route path="/shareholder/:id" element={<ShareholderViewPage />} />
           </Routes>
 
         </div>
-
-        <AppFooter layoutColorMode={layoutColorMode} />
       </div>
 
       <AppConfig rippleEffect={ripple} onRippleEffect={onRipple} inputStyle={inputStyle} onInputStyleChange={onInputStyleChange}

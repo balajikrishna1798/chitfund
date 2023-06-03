@@ -13,8 +13,14 @@ export const LoanApi = createApi({
         }),
 
         getLoan: build.query({
-            query:(page = 0) => `/loan/loan/?page=${page+1}`,
+            query:(data) => `/loan/loan/?page=${data.page+1}&search=${data.search}&loan_date_on_after=${data.searchLoanDateOn}&loan_date_on_before=${data.searchLoanDateTo}&maturity_term_after=${data.searchMaturityDateFrom}&maturity_date_before=${data.searchMaturityDateTo}`,
             // transformResponse: (response, meta, arg) => response,
+            providesTags: (result, error) => [{ type: 'Loan', id:"LIST" }],
+        }),
+
+        getSingleLoan: build.query({
+            // note: an optional `queryFn` may be used in place of `query`
+            query: (id) => ({ url: `loan/loan/${id}` }),
             providesTags: (result, error) => [{ type: 'Loan', id:"LIST" }],
         }),
 
@@ -28,7 +34,6 @@ export const LoanApi = createApi({
         }),
         updateLoan: build.mutation({
             query(data) {
-                console.log("asd",data);
               const { id, ...body } = data
               return {
                 url: `loan/loan/${id}/`,
@@ -50,19 +55,20 @@ export const LoanApi = createApi({
             invalidatesTags: (result, error, id) => [{ type: 'Loan', id:"LIST" }],
         }),
         getDue: build.query({
-            query: () => '/loan/due/',
+            query:(data) => `/loan/due/?page=${data.page+1}&search=${data.search}&due_date_after=${data.searchDueDateOn}&due_date_before=${data.searchDueDateTo}`,
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Loan', id:"LIST" }],
         }),
 
-        getPayment: build.query({
-            query: () => '/loan/payment/',
+
+        getReceipt: build.query({
+            query:(data) => `/loan/receipt/?page=${data.page+1}&search=${data.search}&created_at_after=${data.searchCreatedAtDateOn}&created_at_before=${data.searchCreatedAtDateTo}`,
             // transformResponse: (response, meta, arg) => response,
             providesTags: (result, error) => [{ type: 'Loan', id:"LIST" }],
         }),
-        addPayment: build.mutation({
+        addReceipt: build.mutation({
             query: (body) => ({
-                url: 'loan/payment/',
+                url: 'loan/receipt/',
                 method: 'POST',
                 body,
             }),
@@ -77,6 +83,7 @@ export const {
     useAddLoanMutation,
     useUpdateLoanMutation,
     useGetDueQuery,
-    useAddPaymentMutation,
-    useGetPaymentQuery,
+    useGetSingleLoanQuery,
+    useAddReceiptMutation,
+    useGetReceiptQuery,
 } = LoanApi
