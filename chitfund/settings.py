@@ -123,6 +123,7 @@ CORS_ALLOW_HEADERS = [
 
 ROOT_URLCONF = 'chitfund.urls'
 
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
