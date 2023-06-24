@@ -171,7 +171,7 @@ return e.interest_type
                         <div className="card w-full md:w-20rem h-7rem">
                             <span className="w-full md:w-7rem block text-500 font-medium mb-2">Total Payable Amount </span>
                             <span className="text-900 font-medium text-xl" style={{ color: "green" }}>
-                                {shareholder?.total_payable_amount}
+                                {shareholder?.total_payable_amount?shareholder?.total_payable_amount:0}
                             </span>
                         </div>
 

@@ -285,7 +285,7 @@ const Receipt = () => {
                             <div className="col-12 md:col-3 xl:col-3">
                                 <div className="flex mb-3">
                                     <div className="mt-4 xl:w-15rem sm:w-full w-full">
-                                    <InputText className="mt-4" value={search} id="search" type="text" name="Search" placeholder="Search" onChange={(e) => onHandleSearchChange(e)} />
+                                    <InputText className="w-full" value={search} id="search" type="text" name="Search" placeholder="Search" onChange={(e) => onHandleSearchChange(e)} />
                                     </div>
                                 </div>
                             </div>

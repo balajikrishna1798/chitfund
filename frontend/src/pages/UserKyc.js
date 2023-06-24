@@ -39,6 +39,7 @@ const UserKyc = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        console.log(data);
         setKycs(data && data.results);
     }, [data]);
 

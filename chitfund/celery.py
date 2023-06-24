@@ -17,11 +17,11 @@ app.config_from_object(settings, namespace='CELERY')
 app.conf.beat_schedule = {
     'check_loan':{
         'task':'loan.tasks.check_loan_task',
-        'schedule':crontab(minute=0, hour=0)
+        'schedule':crontab(minute=0, hour='*/3')
     },
     'check_deposit':{
         'task':'loan.tasks.check_deposit_task',
-        'schedule':crontab(minute=0, hour=0)
+        'schedule':crontab(minute=0, hour='*/3')
     }
 }
 app.autodiscover_tasks()

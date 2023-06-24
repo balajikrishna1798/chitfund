@@ -14,7 +14,7 @@ from shareholder.models import shareholder
 class kycViewSet(viewsets.ModelViewSet):
 
     permission_classes = [IsAdminUser]
-    queryset = kyc.objects.all().annotate(deposit_count=Count("deposit", distinct=True),loan_count=Count("loan", distinct=True),due_count=Count("loan__due",filter=Q(loan__due__active=True),distinct=True),payable_count=Count("deposit__payable",filter=Q(loan__due__active=True),distinct=True),is_shareholder=Exists(shareholder.objects.filter(kyc=OuterRef('pk'))))
+    queryset = kyc.objects.all().annotate(deposit_count=Count("deposit", distinct=True),loan_count=Count("loan", distinct=True),due_count=Count("loan__due",filter=Q(loan__due__active=True),distinct=True),payable_count=Count("deposit__payable",filter=Q(deposit__payable__active=True),distinct=True),is_shareholder=Exists(shareholder.objects.filter(kyc=OuterRef('pk'))))
     
     serializer_class = kycSerializer
     filter_backends = [filters.SearchFilter]

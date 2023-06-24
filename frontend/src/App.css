@@ -22,3 +22,16 @@
 *{
     box-shadow: none !important;
 }
+
+.custom-dropdown-scroll {
+    max-height: 60px !important; /* Adjust the max height as needed */
+
+  }
+
+  .dropdowns {
+    max-height: 200px; /* Limit dropdown height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+  }

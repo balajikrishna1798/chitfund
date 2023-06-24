@@ -7,7 +7,8 @@ from shareholder.serializers import shareholderSerializer
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import filters
 import django_filters.rest_framework
-from django.db.models import Count,Q,Sum
+from django.db.models import Count,Q,Sum,F,DecimalField
+from django.db.models.functions import Coalesce
 
 
 # Create your views here.
@@ -19,7 +20,10 @@ class StandardResultsSetPagination(PageNumberPagination):
 
 class shareholderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
-    queryset = shareholder.objects.all().order_by("slug").annotate(deposit_count=Count("kyc__deposit", distinct=True),total_due_amount=Sum("kyc__loan__due__due_amount",filter=Q(kyc__loan__due__active=True),distinct=True),total_payable_amount=Sum("kyc__deposit__payable__payable_amount",filter=Q(kyc__deposit__payable__active=True),distinct=True),loan_count=Count("kyc__loan", distinct=True),due_count=Count("kyc__loan__due",filter=Q(kyc__loan__due__active=True), distinct=True))
+    queryset = shareholder.objects.all().order_by("slug").annotate(deposit_count=Count("kyc__deposit", distinct=True),total_due_amount=Sum(
+    F("kyc__loan__due__due_amount") - Coalesce(F("kyc__loan__due__paid_amount"), 0),
+    filter=Q(kyc__loan__due__active=True),
+    distinct=True,output_field=DecimalField()),total_payable_amount=Sum("kyc__deposit__payable__payable_amount",filter=Q(kyc__deposit__payable__active=True),distinct=True),loan_count=Count("kyc__loan", distinct=True),due_count=Count("kyc__loan__due",filter=Q(kyc__loan__due__active=True), distinct=True))
     serializer_class = shareholderSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['slug','kyc__first_name','kyc__slug']

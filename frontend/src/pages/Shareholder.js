@@ -9,9 +9,10 @@ import { InputText } from "primereact/inputtext";
 import { Dropdown } from "primereact/dropdown";
 import { useGetShareTypesQuery } from "../service/ShareTypeApi";
 import { useGetShareholderQuery, useUpdateShareholderMutation, useAddShareholderMutation } from "../service/ShareholderApi";
-import { useGetKycsQuery } from "../service/KycApi";
+import { useGetKycsQuery,useGetKycQuery } from "../service/KycApi";
 import { Skeleton } from "primereact/skeleton";
 import { InputNumber } from 'primereact/inputnumber';
+import { AutoSizer, List } from "react-virtualized";
 
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -19,12 +20,15 @@ import { Tag } from "primereact/tag";
 import { created_atBodyTemplate } from "../components/createdAtBodyTemplate";
 import { useNavigate,Link } from "react-router-dom";
 import Meta from "../components/Meta";
+import { useDispatch } from "react-redux";
 
 const Shareholder = () => {
     const [search,setSearch] = useState("")
+        const [searchh, setSearchh] = useState('');
+
     const [addShareholder] = useAddShareholderMutation();
     const [shareholders, setShareholders] = useState(null);
-    const [kycs, setKycs] = useState(null);
+    const [kycs, setKycs] = useState([]);
     const [shares, setShares] = useState(null);
     const [shareDialog, setShareDialog] = useState(false);
     const toast = useRef(null);
@@ -33,17 +37,23 @@ const Shareholder = () => {
         rows: 10,
         page: 0,
     });
-    const navigate = useNavigate()
+    const [currentPage, setCurrentPage] = useState(0);
+    const [isFetching, setIsFetching] = useState(false);
 
+    const [loadings, setLoadings] = useState(false);
     const dt = useRef(null);
-    const { data: kyc_id } = useGetKycsQuery();
     const { data: share_id } = useGetShareTypesQuery();
     const { data: getShareholder, isLoading: loading } = useGetShareholderQuery({page:lazyState.page,search:search});
     const [updateShareholder] = useUpdateShareholderMutation();
+    const { data:getKycs } = useGetKycQuery({ page: currentPage,search:searchh });
 
+console.log(kycs);
     useEffect(() => {
-        setKycs(kyc_id);
-    }, [kyc_id]);
+        console.log(getKycs);
+        if (getKycs) {
+          setKycs((prevKycs) => [...prevKycs, ...getKycs?.results]);
+        }
+      }, [getKycs]);
 
     useEffect(() => {
         setShares(share_id);
@@ -52,6 +62,13 @@ const Shareholder = () => {
     useEffect(() => {
         setShareholders(getShareholder && getShareholder.results);
     }, [getShareholder]);
+
+    const fetchNextData = (e) => {
+if(getKycs.next){
+            setCurrentPage(currentPage + 1);
+}
+      };
+
 
     const onPage = (event) => {
         console.log("event", event);
@@ -283,6 +300,7 @@ const Shareholder = () => {
 
         return <span>{props.placeholder}</span>;
     };
+
     const slugBodyTemplate = (rowData) => {
         console.log(rowData);
         return (
@@ -300,6 +318,10 @@ formik.setFieldValue("number_of_shares",e.value)
         setSearch(e.target.value);
 
     }
+
+    const filteredKycs = kycs.filter((kyc) => kyc.slug.toLowerCase().includes(searchh.toLowerCase()));
+
+
     return (
         <div className="grid crud-demo">
             <Meta title={"Shareholders"} />
@@ -375,7 +397,6 @@ formik.setFieldValue("number_of_shares",e.value)
                         <Column field="slug" header="Shareholder ID" body={slugBodyTemplate}></Column>
                         <Column field="kyc" header="KYC" body={codeBodyTemplate}></Column>
                         <Column field="kyc_id" header="KYC ID" body={kycIdBodyTemplate}></Column>
-
                         <Column field="share_type" header="Share Type" body={shareBodyTemplate}></Column>
                         <Column field="number_of_shares" header="Number of  Shares" body={numberofshareBodyTemplate}></Column>
                         <Column field="starting_share" header="Starting Share" body={startingshareBodyTemplate}></Column>
@@ -391,20 +412,24 @@ formik.setFieldValue("number_of_shares",e.value)
                                 <div className="field col-12 mb-2 lg:col-6 lg:mb-0">
                                     <label htmlFor="kyc">KYC</label>
                                     <Dropdown
-                                        value={formik.values.kyc}
-                                        name="kyc"
-                                        id="kyc"
-                                        filter
-                                        filterBy="slug,first_name"
-                                        onChange={formik.handleChange("kyc")}
-                                        options={kycs}
-                                        valueTemplate={selectedKycTemplate}
-                                        itemTemplate={displayKycTemplate}
-                                        optionLabel="slug"
-                                        optionValue="id"
-                                        placeholder="Select User"
-                                        className={`${formik.touched.kyc && formik.errors.kyc && "p-invalid"}`}
-                                    />
+  value={formik.values.kyc}
+  name="kyc"
+  filter
+  virtualScrollerOptions={{lazy: true,itemSize:getKycs?.count,onLazyLoad:fetchNextData}}
+  onChange={formik.handleChange("kyc")}
+  options={filteredKycs}
+  valueTemplate={selectedKycTemplate}
+  itemTemplate={displayKycTemplate}
+  optionLabel="slug"
+  optionValue="id"
+  placeholder="Select User"
+
+  className={`${formik.touched.kyc && formik.errors.kyc && "p-invalid"}`}
+  style={{ maxHeight: '250px', overflowY: 'auto' }}
+/>
+
+
+
                                     {formik.errors.kyc && formik.touched.kyc && <p className="error">{formik.errors.kyc}</p>}
                                 </div>
 
